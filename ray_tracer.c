@@ -8,7 +8,7 @@
     #define NUM_RAYS 100
 #endif
 
-color_RGB render_pixel(ray pixel_ray, object sphere);
+color_RGB render_pixel(ray pixel_ray, bvh_tree* root);
 
 int main(int argc, char* argv[]){
     
@@ -20,9 +20,9 @@ int main(int argc, char* argv[]){
 
     // Setup camera
     camera camara = {
-        .fov = 75,
-        .position = new_vector(0.0, 0.0, -10.0),
-        .up = new_normal(0.5, 0.5, 0.0)
+        .fov = 90,
+        .position = new_vector(0.0, 0.0, -20.0),
+        .up = new_normal(0.0, 1.0, 0.0)
     };
 
     vector to = new_vector(0.0, 0.0, 0.0);
@@ -33,23 +33,34 @@ int main(int argc, char* argv[]){
     double d = sqrt(aspect*aspect + 1.0)/(2.0*tan(M_PI*camara.fov/360.0));
 
     // Setup objects
-    sphere sphere_geometry = new_sphere(
-        5.0, 
-        new_vector(0.0, 0.0, 0.0)
-    );
+    list* head = new_list();
+    bvh_tree* tree = new_bvh_tree(X);
+    for(size_t i=0; i< 10; i++){
+        sphere* sphere_geometry = malloc(sizeof(sphere));
+        head = add_node(head, sphere_geometry);
+        fill_allocated_sphere(
+            sphere_geometry,
+            RAND(1.0,3.0), 
+            new_vector(RAND(-5.0,5.0), RAND(-5.0,5.0), RAND(-5.0,5.0))
+        );
 
-    properties material = {
-        .color = new_color_RGB(1.0,0,0)
-    };
+        properties material = {
+            .color = new_color_RGB(RAND(0.0,1.0),RAND(0.0,1.0),RAND(0.0,1.0))
+        };
 
-    object bola = new_sphere_object(
-        &sphere_geometry,
-        material
-    );
+        object* bola = malloc(sizeof(object));
+        head = add_node(head, bola);
+        fill_allocated_sphere_object(
+            bola,
+            sphere_geometry,
+            material
+        );
 
-    //Transform objects
-    bola.transform_geometry(look_at, bola.geometry);
+        transform_object(look_at, bola);
+        add_object(tree, bola);
+    }
 
+    distribute_bvh(tree);
 
     for(size_t i = 0; i<width; i++){
         for(size_t j = 0; j<height; j++){
@@ -64,7 +75,7 @@ int main(int argc, char* argv[]){
                     new_normal(x, y, d)
                 );
 
-                ray_color = add_color(ray_color, render_pixel(pixel_ray, bola));
+                ray_color = add_color(ray_color, render_pixel(pixel_ray, tree));
             }
 
             
@@ -77,16 +88,18 @@ int main(int argc, char* argv[]){
 
     write_bmp("Resultado.bmp", screen);
     free_image(screen);
+    free_bvh_tree(tree);
+    free_list(head);
     return EXIT_SUCCESS;
 }
 
 
-color_RGB render_pixel(ray pixel_ray, object object_list){
-    collition hitted_object = get_collition(&object_list, pixel_ray);
+color_RGB render_pixel(ray pixel_ray, bvh_tree* root){
+    collition hitted_object = get_bvh_collition(root, pixel_ray);
     if(hitted_object.is_hit){
-        normal surface_normal = hitted_object.normal;
-        color_RGB sufrace_color = new_color_RGB( surface_normal.x, surface_normal.y, surface_normal.z);
-        return sufrace_color;
+        //normal surface_normal = hitted_object.normal;
+        //color_RGB sufrace_color = new_color_RGB( surface_normal.x, surface_normal.y, surface_normal.z);
+        return hitted_object.material.color;
     } else {
         return new_color_RGB( 0.0, 0.0, 0.0);
     }

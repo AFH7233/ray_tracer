@@ -26,10 +26,27 @@
  }
 
 
-void transform_sphere_with_mutation(matrix transformation, sphere* bola){
+void transform_sphere_with_mutation(matrix transformation, sphere *restrict  bola){
     bola->center = trasnform(transformation, bola->center);
 }
 
+
+box get_sphere_bounding_box(sphere *restrict  bola){
+    box aabb = {
+        .max_x = bola->center.x + bola->radio,
+        .max_y = bola->center.y + bola->radio,
+        .max_z = bola->center.z + bola->radio,
+        .min_x = bola->center.x - bola->radio,
+        .min_y = bola->center.y - bola->radio,
+        .min_z = bola->center.z - bola->radio,
+        .center = bola->center
+    };
+    return aabb;
+}
+
+double get_sphere_area(sphere *restrict  bola){
+    return 4*M_PI*bola->radio*bola->radio;
+}
 
 /* sphere transform_sphere(matrix transformation, sphere bola){
     vector moved_center = trasnform(transformation, bola.center);
