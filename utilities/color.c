@@ -11,8 +11,11 @@ color_RGB add_color(color_RGB a, color_RGB b){
 color_RGB mix_color(color_RGB a, color_RGB b){
     color_RGB c = {};
     c.red = a.red * b.red;
+    c.red = isnan(c.red) ? COLOR_ERROR : c.red;
     c.green = a.green * b.green;
+    c.green = isnan(c.green ) ? COLOR_ERROR : c.green;
     c.blue = a.blue * b.blue;
+    c.blue = isnan(c.blue) ? COLOR_ERROR : c.blue;
     return c;
 }
 
@@ -28,8 +31,12 @@ color_RGB normalize_color(color_RGB a){
 color_RGB scale_color(color_RGB a, double k){
     color_RGB c = {};
     c.red = a.red * k;
+    c.red = isnan(c.red) ? COLOR_ERROR : c.red;
     c.green = a.green * k;
+    c.green = isnan(c.green ) ? COLOR_ERROR : c.green;
     c.blue = a.blue * k;
+    c.blue = isnan(c.blue) ? COLOR_ERROR : c.blue;
+    
     return c;
 }
 

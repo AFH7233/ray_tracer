@@ -5,14 +5,18 @@
 #include "utilities/logging.h"
 
 #ifndef NUM_RAYS
-    #define NUM_RAYS 100
+    #define NUM_RAYS 10000
 #endif
 
-color_RGB render_pixel(ray pixel_ray, bvh_tree* root);
+#ifndef NUM_BOUNCES
+    #define NUM_BOUNCES 3
+#endif
+
+color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces);
 
 int main(int argc, char* argv[]){
     
-    srand(time(NULL));
+    srand (time(0));
 
     size_t width = 640UL;
     size_t height = 480UL;
@@ -21,11 +25,11 @@ int main(int argc, char* argv[]){
     // Setup camera
     camera camara = {
         .fov = 45,
-        .position = new_vector(0.0, 0.0, -40.0),
+        .position = new_vector(0.0, 15.0, -60.0),
         .up = new_normal(0.0, 1.0, 0.0)
     };
 
-    vector to = new_vector(0.0, 0.0, 20.0);
+    vector to = new_vector(0.0, 0.0, 100.0);
     matrix look_at = get_look_at(camara, to);
 
     //Setup distance
@@ -35,17 +39,38 @@ int main(int argc, char* argv[]){
     // Setup objects
     list* head = new_list();
     bvh_tree* tree = new_bvh_tree(X);
+
+    sphere light_geometry = new_sphere(
+        25.0, 
+        new_vector(0.0, 100.0,0.0)
+    );
+
+    properties light_material = {
+        .color = new_color_RGB(1.0,1.0,1.0),
+        .emmitance = new_color_RGB(3.0, 3.0, 3.0)
+    };
+
+    object light_bola = new_sphere_object(
+        &light_geometry,
+        light_material
+    );       
+
+    transform_object(look_at, &light_bola);
+    add_object(tree, &light_bola);
+    
+  
     for(size_t i=0; i< 100; i++){
         sphere* sphere_geometry = malloc(sizeof(sphere));
         head = add_node(head, sphere_geometry);
         fill_allocated_sphere(
             sphere_geometry,
             RAND(1.0,3.0), 
-            new_vector(RAND(-10.0,10.0), RAND(-10.0,10.0), RAND(-10.0,10.0))
+            new_vector(RAND(-20.0,20.0), RAND(0.0,10.0), RAND(-20.0,20.0))
         );
 
         properties material = {
-            .color = new_color_RGB(RAND(0.0,1.0), RAND(0.0,1.0), RAND(0.0,1.0))
+            .color = new_color_RGB(RAND(0.1,1.0), RAND(0.1,1.0), RAND(0.1,1.0)),
+            .emmitance = new_color_RGB(0.0,0.0,0.0)
         };
 
         object* bola = malloc(sizeof(object));
@@ -62,6 +87,7 @@ int main(int argc, char* argv[]){
 
     distribute_bvh(tree);
 
+    printf("Starting rendering\n");
     for(size_t i = 0; i<width; i++){
         for(size_t j = 0; j<height; j++){
             color_RGB ray_color = new_color_RGB(0.0,0.0,0.0);
@@ -75,7 +101,7 @@ int main(int argc, char* argv[]){
                     new_normal(x, y, d)
                 );
 
-                ray_color = add_color(ray_color, render_pixel(pixel_ray, tree));
+                ray_color = add_color(ray_color, render_pixel(pixel_ray, tree, 0));
             }
 
             
@@ -83,6 +109,9 @@ int main(int argc, char* argv[]){
             pixel_color final_color = to_pixel_color(ray_color);
 
             put_pixel(screen, i, j, final_color);
+        }
+        if(width%10 == 0){
+            printf("Progress: %I64d\n\r", ((i*100)/width));
         }
     }
 
@@ -94,13 +123,22 @@ int main(int argc, char* argv[]){
 }
 
 
-color_RGB render_pixel(ray pixel_ray, bvh_tree* root){
+color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces){
+
     collition hitted_object = get_bvh_collition(root, pixel_ray);
-    if(hitted_object.is_hit){
-        //normal surface_normal = hitted_object.normal;
-        //color_RGB sufrace_color = new_color_RGB( surface_normal.x, surface_normal.y, surface_normal.z);
-        return hitted_object.material.color;
+    if(hitted_object.is_hit && bounces < NUM_BOUNCES){
+        normal surface_normal = hitted_object.normal;
+        vector surface_point = hitted_object.point;
+
+        ray generated_pixel_ray = diffuse_ray(surface_normal, surface_point);
+
+        color_RGB incoming_color = render_pixel(generated_pixel_ray, root, (bounces+1));
+
+        color_RGB surface_color = mix_color(hitted_object.material.color, incoming_color);
+        color_RGB brdf = add_color(hitted_object.material.emmitance, surface_color);
+        return brdf;
     } else {
-        return new_color_RGB( 0.0, 0.0, 0.0);
-    }
+        return  new_color_RGB(COLOR_ERROR, COLOR_ERROR, COLOR_ERROR); //new_color_RGB( 0.5, 0.7, 1.0);
+    } 
+
 }

@@ -2,7 +2,7 @@
 #include "camera.h"
 
 matrix get_look_at(camera camara, vector to){
-    normal forward = to_normal(sub_vector(camara.position, to));
+    normal forward = to_normal(sub_vector(to, camara.position));
     normal side = cross(camara.up, forward);
     normal up = cross(forward, side);
 
@@ -20,6 +20,6 @@ matrix get_look_at(camera camara, vector to){
         0.0, 0.0, 0.0, 1.0
     );
 
-    matrix look_at = mul_matrix(translacion, ejes);
+    matrix look_at = mul_matrix(ejes, translacion);
     return look_at;
 }

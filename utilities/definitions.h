@@ -14,9 +14,9 @@
     #include "list.h"
 
     // geometria must be a pointer to a sphere
-    #define new_sphere_object(geometria, material) (object) { \
+    #define new_sphere_object(geometria, mat) (object) { \
         .geometry = geometria, \
-        .material = material, \
+        .material = mat, \
         .get_geometry_collition = (geometry_collition (*) (void*, ray)) get_sphere_collition, \
         .transform_geometry = (void (*) (matrix, void*))  transform_sphere_with_mutation, \
         .bounding_box  = get_sphere_bounding_box(geometria), \
@@ -24,9 +24,9 @@
         .get_bounding_box = (box (*) (void*)) get_sphere_bounding_box \
     } 
 
-    #define fill_allocated_sphere_object(o, geometria, material) { \
+    #define fill_allocated_sphere_object(o, geometria, mat) { \
         o->geometry = geometria; \
-        o->material = material; \
+        o->material = mat; \
         o->get_geometry_collition = (geometry_collition (*) (void*, ray)) get_sphere_collition; \
         o->transform_geometry = (void (*) (matrix, void*))  transform_sphere_with_mutation; \
         o->bounding_box  = get_sphere_bounding_box(geometria); \
