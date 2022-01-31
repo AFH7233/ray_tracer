@@ -5,7 +5,7 @@
     #include <stdbool.h>
     #include "algebra.h"
 
-    #define new_ray(a, b) { .origin=a, .direction=b}
+    #define new_ray(a, b) (ray) { .origin=a, .direction=b}
     #define get_ray_point(ray, distance) add_vector(ray.origin, scale_vector(ray.direction,distance))
 
     typedef struct ray ray;
@@ -23,5 +23,7 @@
         normal normal;
         vector point;
     };
+
+    ray diffuse_ray(normal surface_normal, vector surface_point);
 
 #endif

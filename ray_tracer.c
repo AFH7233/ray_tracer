@@ -45,7 +45,7 @@ int main(int argc, char* argv[]){
         );
 
         properties material = {
-            .color = new_color_RGB(RAND(0.0,1.0),RAND(0.0,1.0),RAND(0.0,1.0))
+            .color = new_color_RGB(RAND(0.0,1.0), RAND(0.0,1.0), RAND(0.0,1.0))
         };
 
         object* bola = malloc(sizeof(object));

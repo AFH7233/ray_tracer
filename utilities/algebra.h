@@ -1,8 +1,13 @@
 #ifndef _ALGEBRA_
     #define _ALGEBRA_
     #include <tgmath.h>
+    #include <stdlib.h>
 
-    #define divide(a, k) scale(a, (1.0/k));
+    
+    #define RAND(a, b)  ( a + ERROR + ( b + (-1.0 * a )) * (rand() / (double) RAND_MAX) )
+
+    #define divide(a, k) scale_vector(a, (1.0/k))
+    #define multiply(a, k) scale_vector(a, k)
     #define new_vector(a,b,c) (vector) {.x=a, .y=b, .z=c, .w=1.0}
     #define new_normal(a,b,c) to_normal( (vector) {.x=a, .y=b, .z=c, .w=0.0} )
     #define new_matrix(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p)  (matrix) { .elements = { {a, b, c, d}, {e, f, g, h}, {i, j, k, l}, {m, n, o, p}} }
@@ -41,5 +46,7 @@
 
     vector trasnform(matrix matriz, vector a);
     matrix mul_matrix(matrix a, matrix b);
+
+    normal random_sphere_direction(normal direction, double cone_angle_degree);
     
 #endif

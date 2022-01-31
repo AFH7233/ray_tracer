@@ -13,8 +13,6 @@
     #include "sphere.h"
     #include "list.h"
 
-    #define RAND(a, b)  ( a + ERROR + ( b + (-1.0 * a )) * (rand() / (double) RAND_MAX) )
-
     // geometria must be a pointer to a sphere
     #define new_sphere_object(geometria, material) (object) { \
         .geometry = geometria, \

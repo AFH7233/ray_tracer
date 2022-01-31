@@ -67,6 +67,30 @@ vector trasnform(matrix matriz, vector a){
     return c;
 }
 
+normal random_sphere_direction(normal direction, double cone_angle_degree) {
+
+  double spread = cone_angle_degree/360.0;
+
+  normal b3 = direction;
+  normal different = (fabs(b3.x) < 0.5) ? new_normal(1.0, 0.0, 0.0) : new_normal(0.0, 1.0, 0.0);
+  normal b1 = cross(b3, different);
+  normal b2 = cross(b1, b3);
+ 
+
+  double z = RAND(cos(spread * M_PI), 1.0);
+  double r = sqrt(1.0 - z * z); 
+  double theta = RAND(-M_PI, M_PI);
+  double x = r * cos(theta);
+  double y = r * sin(theta);
+
+  vector bx1 =  multiply(b1, x);
+  vector by2 =  multiply(b2, y);
+  vector bz3 =  multiply(b3, z);
+  vector pre_result = add_vector(add_vector(bx1,  by2), bz3);
+  return to_normal(pre_result);
+}
+ 
+
 
 matrix mul_matrix(matrix a, matrix b){
     matrix c = { .elements = {} };

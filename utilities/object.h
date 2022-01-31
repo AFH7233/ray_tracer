@@ -10,6 +10,7 @@
     struct properties
     {
         color_RGB color;
+        color_RGB emmitance;
     };
     
 
