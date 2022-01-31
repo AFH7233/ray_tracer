@@ -40,13 +40,17 @@ void add_object(bvh_tree* root, object* object_3d){
     if(final_size < root->cap_of_objects){
         root->object_array[final_size] = object_3d;
     } else {
-        object** new_array = realloc(root->object_array, root->cap_of_objects*2*sizeof(object*));
+        object** new_array = calloc(root->cap_of_objects*2, sizeof(object*));
         if(new_array == NULL){
             fprintf(stderr, "No memory to reallocate\n");
             exit(EXIT_FAILURE);
         }
-        root->object_array[final_size] = object_3d;
+        for(size_t i=0; i<root->num_of_objects; i++){
+            new_array[i] = root->object_array[i];
+        }
+        free(root->object_array);
         root->object_array = new_array;
+        root->object_array[final_size] = object_3d;
         root->cap_of_objects = root->cap_of_objects*2;
     }
     root->num_of_objects = final_size + 1;
@@ -67,12 +71,14 @@ void distribute_bvh(bvh_tree* root){
     }
 
     root->is_leaf = false;
+
     switch (root->eje)
     {
     case X:
         root->left = new_bvh_tree(Y);
         root->right = new_bvh_tree(Y);
         qsort(root->object_array, root->num_of_objects, sizeof(object*), compare_by_x);
+
         break;
     case Y:
         root->left = new_bvh_tree(Z);
@@ -92,6 +98,7 @@ void distribute_bvh(bvh_tree* root){
     size_t length = root->num_of_objects;
     double* areas = calloc(length, sizeof(double));
     object** array = root->object_array;
+
     areas[0] = (array[0])->surface_area;
     for(size_t i=1; i < length; i++){
         areas[i] = (array[i])->surface_area;
@@ -114,14 +121,18 @@ void distribute_bvh(bvh_tree* root){
     for(size_t i=0; i < cut+1; i++){
         add_object(root->left, array[i]);
     }
-    distribute_bvh(root->left);
 
     for(size_t i=cut+1; i < length; i++){
         add_object(root->right, array[i]);
     }
-    distribute_bvh(root->right);
 
     free_node_object_list(root);
+    free(areas);
+
+    distribute_bvh(root->left);
+    distribute_bvh(root->right);
+
+
     return;
 }
   

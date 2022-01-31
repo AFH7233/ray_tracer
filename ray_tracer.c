@@ -20,12 +20,12 @@ int main(int argc, char* argv[]){
 
     // Setup camera
     camera camara = {
-        .fov = 90,
-        .position = new_vector(0.0, 0.0, -20.0),
+        .fov = 45,
+        .position = new_vector(0.0, 0.0, -40.0),
         .up = new_normal(0.0, 1.0, 0.0)
     };
 
-    vector to = new_vector(0.0, 0.0, 0.0);
+    vector to = new_vector(0.0, 0.0, 20.0);
     matrix look_at = get_look_at(camara, to);
 
     //Setup distance
@@ -35,13 +35,13 @@ int main(int argc, char* argv[]){
     // Setup objects
     list* head = new_list();
     bvh_tree* tree = new_bvh_tree(X);
-    for(size_t i=0; i< 10; i++){
+    for(size_t i=0; i< 100; i++){
         sphere* sphere_geometry = malloc(sizeof(sphere));
         head = add_node(head, sphere_geometry);
         fill_allocated_sphere(
             sphere_geometry,
             RAND(1.0,3.0), 
-            new_vector(RAND(-5.0,5.0), RAND(-5.0,5.0), RAND(-5.0,5.0))
+            new_vector(RAND(-10.0,10.0), RAND(-10.0,10.0), RAND(-10.0,10.0))
         );
 
         properties material = {
