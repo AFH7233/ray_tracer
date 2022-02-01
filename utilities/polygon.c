@@ -91,7 +91,7 @@ box get_face_bounding_box(face *restrict  surface){
         aabb.min_y + (aabb.max_y - aabb.min_y)/2.0,
         aabb.min_z + (aabb.max_x - aabb.min_z)/2.0
     );
-    
+
     return aabb;
 }
 
@@ -106,4 +106,5 @@ double get_face_area(face *restrict  surface){
 
     vector total = cross(edge_ba, edge_ca);
     double areaTotal = norma(total)/2.0;
+    return areaTotal;
 }

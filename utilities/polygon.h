@@ -20,7 +20,6 @@
     {
         polygon* cloud;
         size_t indices_vertex[3];
-        size_t indices_normals[3]; 
     };
 
 
