@@ -1,10 +1,10 @@
 #include "sphere.h"
 
 
- geometry_collition get_sphere_collition(sphere* bola, ray ray){
+ geometry_collition get_sphere_collition(sphere* bola, ray pixel_ray){
 
-    vector ray_sphere = sub_vector(ray.origin, bola->center);
-    double b = dot(ray.direction, ray_sphere);
+    vector ray_sphere = sub_vector(pixel_ray.origin, bola->center);
+    double b = dot(pixel_ray.direction, ray_sphere);
     double discriminante = b*b - (dot(ray_sphere,ray_sphere) - bola->radio*bola->radio); 
     if(discriminante < 0){
         geometry_collition result = {.is_hit = false};
@@ -17,7 +17,7 @@
             return result;
         }
         geometry_collition result = {.is_hit = true};
-        result.point  = get_ray_point(ray, t);
+        result.point  = get_ray_point(pixel_ray, t);
         result.normal = to_normal(sub_vector(result.point, bola->center));
         result.distance = t;
         return result;

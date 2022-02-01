@@ -15,7 +15,7 @@
         vector center;
     };
 
-    geometry_collition get_sphere_collition(sphere *restrict bola, ray ray);
+    geometry_collition get_sphere_collition(sphere *restrict bola, ray pixel_ray);
     void transform_sphere_with_mutation(matrix transformation, sphere* bola);
     box get_sphere_bounding_box(sphere *restrict  bola);
     double get_sphere_area(sphere *restrict  bola);

@@ -62,6 +62,11 @@ void add_object(bvh_tree* root, object* object_3d){
         .max_y = fmax(object_3d->bounding_box.max_y, root->bounding_box.max_y),
         .max_z = fmax(object_3d->bounding_box.max_z, root->bounding_box.max_z),   
     };
+    bounding_box.center = new_vector(
+        bounding_box.min_x + (bounding_box.max_x - bounding_box.min_x)/2.0,
+        bounding_box.min_y + (bounding_box.max_y - bounding_box.min_y)/2.0,
+        bounding_box.min_z + (bounding_box.max_x - bounding_box.min_z)/2.0
+    );
     root->bounding_box = bounding_box;
 }
 

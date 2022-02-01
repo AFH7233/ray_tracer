@@ -43,6 +43,7 @@
     vector add_vector(vector a, vector b);
     vector sub_vector(vector a, vector b);
     vector to_normal(vector a);
+    double norma(vector a);
 
     vector trasnform(matrix matriz, vector a);
     matrix mul_matrix(matrix a, matrix b);

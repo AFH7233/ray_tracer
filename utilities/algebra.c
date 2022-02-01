@@ -23,6 +23,10 @@ vector normalize(vector a){
     return c;
 }
 
+double norma(vector a){
+    return  sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
+}
+
 vector scale_vector(vector a, double k){
     vector c = {};
     c.x = a.x*k;
