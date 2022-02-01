@@ -74,3 +74,12 @@ void put_pixel(image image,size_t y, size_t x, pixel_color color){
     image.data[getImageIndex(y, x, 1, image.width, image.height)] = color.green;
     image.data[getImageIndex(y, x, 2, image.width, image.height)] = color.blue;
 }
+
+pixel_color get_pixel(image image,size_t y, size_t x){
+    pixel_color pixel = {
+        .red = image.data[getImageIndex(y, x, 0, image.width, image.height)],
+        .green = image.data[getImageIndex(y, x, 1, image.width, image.height)],
+        .blue = image.data[getImageIndex(y, x, 2, image.width, image.height)]
+    };
+    return pixel;
+}

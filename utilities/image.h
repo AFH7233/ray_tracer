@@ -28,4 +28,5 @@
     image new_image(size_t width, size_t height);
     void free_image(image screen);
     void put_pixel(image image,size_t y, size_t x, pixel_color color);
+    pixel_color get_pixel(image image,size_t y, size_t x);
 #endif
