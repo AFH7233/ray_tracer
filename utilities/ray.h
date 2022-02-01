@@ -25,5 +25,6 @@
     };
 
     ray diffuse_ray(normal surface_normal, vector surface_point);
+    ray specular_ray(normal surface_normal, vector surface_point, ray incoming_ray, double angle_spread);
 
 #endif

@@ -46,6 +46,7 @@ pixel_color to_pixel_color(color_RGB normal){
     double green = normal.green > (1.0 - COLOR_ERROR)? 1.0 : normal.green;
     double blue = normal.blue > (1.0 - COLOR_ERROR)? 1.0 : normal.blue;
 
+    // Gamma correction
     int r = (int) (0.5 + pow(red,1.0/2.2)*255.0);
     int g = (int) (0.5 + pow(green,1.0/2.2)*255.0);
     int b = (int) (0.5 + pow(blue,1.0/2.2)*255.0);

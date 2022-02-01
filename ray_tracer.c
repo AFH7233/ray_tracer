@@ -5,11 +5,11 @@
 #include "utilities/logging.h"
 
 #ifndef NUM_RAYS
-    #define NUM_RAYS 100
+    #define NUM_RAYS 10
 #endif
 
 #ifndef NUM_BOUNCES
-    #define NUM_BOUNCES 3
+    #define NUM_BOUNCES 5
 #endif
 
 color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces);
@@ -58,45 +58,20 @@ int main(int argc, char* argv[]){
     transform_object(look_at, &light_bola);
     add_object(tree, &light_bola);
 
+    /*
     properties material = {
         .color = new_color_RGB(0.999,0.999,0.999),
         .emmitance = new_color_RGB(0.0,0.0,0.0)
     };
-
-   /* vector vertex_a = new_vector(0.0,0.0,0.0);
-    vector vertex_b = new_vector(0.0,10.0,5.0);
-    vector vertex_c = new_vector(10.0,0.0,10.0);
-    vector vertices[] = {vertex_a, vertex_b, vertex_c};
-    normal diagonal = new_normal(1.0,0.0,-1.0);
-    normal normals[] = { diagonal, diagonal, diagonal};
-    polygon cloud = {
-        .is_transformed = false,
-        .normals = normals,
-        .vertices = vertices,
-        .num_vertices = 3
-    };
-    face surface = {
-        .cloud = &cloud,
-        .indices_vertex = {0,1,2}
-    };
-    object triangle = new_polygon_object(&surface, material);
-
-    obj_container container = {
-        .length = 1,
-        .triangles = &triangle
-    };
-        transform_object(look_at, &container.triangles[0]);
-        add_object(tree, &container.triangles[0]);*/
-    
     obj_container container = read_obj_file("teapot.obj", 10.0, material);
 
     for(size_t i=0; i<container.length; i++){
         transform_object(look_at, &container.triangles[i]);
         add_object(tree, &container.triangles[i]);
-    }
+    }*/
     
-    /*
-    for(size_t i=0; i< 100; i++){
+    
+    for(size_t i=0; i< 10; i++){
         sphere* sphere_geometry = malloc(sizeof(sphere));
         head = add_node(head, sphere_geometry);
         fill_allocated_sphere(
@@ -107,7 +82,9 @@ int main(int argc, char* argv[]){
 
         properties material = {
             .color = new_color_RGB(RAND(0.1,1.0), RAND(0.1,1.0), RAND(0.1,1.0)),
-            .emmitance = new_color_RGB(1.0,1.0,1.0)
+            .emmitance = new_color_RGB(0.0,0.0,0.0),
+            .p_diffract = 0.3,
+            .angle_spread_reflect = 20.0
         };
 
         object* bola = malloc(sizeof(object));
@@ -120,7 +97,7 @@ int main(int argc, char* argv[]){
 
         transform_object(look_at, bola);
         add_object(tree, bola);
-    }*/
+    }
 
     distribute_bvh(tree);
 
@@ -168,8 +145,13 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces){
         normal surface_normal = hitted_object.normal;
         vector surface_point = hitted_object.point;
 
-        ray generated_pixel_ray = diffuse_ray(surface_normal, surface_point);
-
+        ray generated_pixel_ray = {};
+        if(hitted_object.material.p_diffract < RAND(0.0,1.0)){
+            generated_pixel_ray = specular_ray(surface_normal, surface_point, pixel_ray, hitted_object.material.angle_spread_reflect);
+        } else {
+            generated_pixel_ray = diffuse_ray(surface_normal, surface_point);
+        }
+        
         color_RGB incoming_color = render_pixel(generated_pixel_ray, root, (bounces+1));
         incoming_color = scale_color(incoming_color, dot(surface_normal, generated_pixel_ray.direction));
 
@@ -178,8 +160,8 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces){
 
         return brdf;
     } else {
-        //return new_color_RGB( 0.5, 0.7, 1.0);
-        return  new_color_RGB(COLOR_ERROR, COLOR_ERROR, COLOR_ERROR); //new_color_RGB( 0.5, 0.7, 1.0);
+        return new_color_RGB( 0.5, 0.7, 1.0);
+       //return  new_color_RGB(COLOR_ERROR, COLOR_ERROR, COLOR_ERROR); //new_color_RGB( 0.5, 0.7, 1.0);
     } 
 
 }

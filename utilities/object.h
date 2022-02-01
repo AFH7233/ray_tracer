@@ -11,6 +11,8 @@
     {
         color_RGB color;
         color_RGB emmitance;
+        double p_diffract;
+        double angle_spread_reflect;
     };
     
 
