@@ -4,10 +4,12 @@
     #include <tgmath.h>
     #include <stdlib.h>
     #include <stdio.h>
+    #include <float.h>
     #include "algebra.h"
     #include "object.h"
     #include "polygon.h"
     #include "list.h"
+
 
     typedef struct  list_vector list_vector;
     struct list_vector
@@ -21,7 +23,7 @@
     {
         size_t length;
         size_t indices_vertex[4];
-        list_vector* next;
+        list_face* next;
     };
 
     typedef struct  obj_container obj_container;

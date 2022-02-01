@@ -40,8 +40,12 @@ geometry_collition get_face_collition(face *restrict surface, ray pixel_ray){
         return result;
     }
 
+    normal normal_a = cloud->normals[surface->indices_vertex[0]];
+    normal normal_b = cloud->normals[surface->indices_vertex[1]];
+    normal normal_c = cloud->normals[surface->indices_vertex[2]];
+
     vector total = cross(edge_ba, edge_ca);
-    double areaTotal = norma(total)/2.0;
+    double areaTotal = norma(total);
 
     vector line_a = sub_vector(vertex_a, result.point);
     vector line_b = sub_vector(vertex_b, result.point);
@@ -56,9 +60,8 @@ geometry_collition get_face_collition(face *restrict surface, ray pixel_ray){
     double c2 = norma(t2);
 
 
-    vector surface_normal = divide(add_vector(add_vector(multiply(vertex_a, c0), multiply(vertex_b, c1)), multiply(vertex_c, c2)), areaTotal);
+    vector surface_normal = divide(add_vector(add_vector(multiply(normal_a, c0), multiply(normal_b, c1)), multiply(normal_c, c2)), areaTotal);
     surface_normal = to_normal(surface_normal);
-    
     result.normal = surface_normal;
     
     return result;
@@ -66,10 +69,14 @@ geometry_collition get_face_collition(face *restrict surface, ray pixel_ray){
 
 void transform_face_with_mutation(matrix transformation, face* surface){
     polygon* cloud = surface->cloud;
-    for(size_t i=0; i< cloud->num_vertices; i++){
-        cloud->vertices[i] = trasnform(transformation, cloud->vertices[i]);
-        cloud->normals[i] = trasnform(transformation, cloud->normals[i]);
+    if(!cloud->is_transformed){
+        for(size_t i=0; i< cloud->num_vertices; i++){
+            cloud->vertices[i] = trasnform(transformation, cloud->vertices[i]);
+            cloud->normals[i] = trasnform(transformation, cloud->normals[i]);
+        }
+        cloud->is_transformed = true;
     }
+
 }
 
 box get_face_bounding_box(face *restrict  surface){

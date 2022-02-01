@@ -2,6 +2,7 @@
 
 static list_face* triangulate_convex_faces(list_face* head_face);
 static normal* create_vertex_normals(object* triangles, polygon* cloud, size_t vertex_count, size_t face_count);
+static void center_obj(vector* arr, size_t length);
 
 obj_container read_obj_file(char* fileName, double scale, properties material){
     FILE *file = fopen(fileName, "r");
@@ -16,7 +17,7 @@ obj_container read_obj_file(char* fileName, double scale, properties material){
     list_vector* current_vertex = head_vertex;
     list_face* head_face = malloc(sizeof(list_face));
     head_face->next = NULL;
-    list_face* current_face = current_face;
+    list_face* current_face = head_face;
     size_t vertex_count = 0;
     size_t face_count = 0;
     printf("Empezando a leer el archivo %s\n", fileName);
@@ -30,7 +31,7 @@ obj_container read_obj_file(char* fileName, double scale, properties material){
                 double y;
                 double z;
                 sscanf((line+1), "%lf %lf %lf", &x, &y, &z);
-                current_vertex->value = new_vector(x,y,z);
+                current_vertex->value = new_vector(x,y,z); //mirror in z
                 
                 vertex_count++;
                 current_vertex->next = malloc(sizeof(list_vector));
@@ -69,35 +70,37 @@ obj_container read_obj_file(char* fileName, double scale, properties material){
                 }
                 index++;
             }
-            size_t vertex[4]; 
-            size_t successful = sscanf((line+1), "%d %d %d %d", &vertex[0], &vertex[1], &vertex[2], &vertex[3]);
+            int vertex[4]; 
+            int successful = sscanf((line+1), "%d %d %d %d", &vertex[0], &vertex[1], &vertex[2], &vertex[3]);
             if(successful == 4){ 
                 face_count += 2;
-                current_face->indices_vertex[0] < 0? vertex[0]+vertex_count:(vertex[0]-1), 
-                current_face->indices_vertex[1] < 0? vertex[1]+vertex_count:(vertex[1]-1), 
-                current_face->indices_vertex[2] < 0? vertex[2]+vertex_count:(vertex[2]-1), 
-                current_face->indices_vertex[3] < 0? vertex[3]+vertex_count:(vertex[3]-1), 
+                current_face->indices_vertex[0] = vertex[0] < 0? (size_t)(vertex[0]+vertex_count):(size_t) (vertex[0]-1); 
+                current_face->indices_vertex[1] = vertex[1] < 0? (size_t)(vertex[1]+vertex_count):(size_t)(vertex[1]-1); 
+                current_face->indices_vertex[2] = vertex[2] < 0? (size_t)(vertex[2]+vertex_count):(size_t)(vertex[2]-1); 
+                current_face->indices_vertex[3] = vertex[3] < 0? (size_t)(vertex[3]+vertex_count):(size_t)(vertex[3]-1); 
                 current_face->length = 4;
-                current_face->next = malloc(sizeof(current_face));
+                current_face->next = malloc(sizeof(list_face));
                 current_face = current_face->next;
                 current_face->next = NULL;
             } else {
                 face_count += 1;
-                current_face->indices_vertex[0] < 0? vertex[0]+vertex_count:(vertex[0]-1), 
-                current_face->indices_vertex[1] < 0? vertex[1]+vertex_count:(vertex[1]-1), 
-                current_face->indices_vertex[2] < 0? vertex[2]+vertex_count:(vertex[2]-1), 
+                current_face->indices_vertex[0] = vertex[0] < 0? (size_t)(vertex[0]+vertex_count):(size_t) (vertex[0]-1); 
+                current_face->indices_vertex[1] = vertex[1] < 0? (size_t)(vertex[1]+vertex_count):(size_t)(vertex[1]-1); 
+                current_face->indices_vertex[2] = vertex[2] < 0? (size_t)(vertex[2]+vertex_count):(size_t)(vertex[2]-1); 
                 current_face->length = 3;
-                current_face->next = malloc(sizeof(current_face));
+
+                current_face->next = malloc(sizeof(list_face));
                 current_face = current_face->next;
                 current_face->next = NULL;
             }
         }
     }
 
-    printf("Vertices agregados: %d\n", vertex_count);
-    printf("Caras agregadas: %d\n", face_count);
+    printf("Vertices agregados: %I64d\n", vertex_count);
+    printf("Caras agregadas: %I64d\n", face_count);
 
     list_face* triangulated_faces = triangulate_convex_faces(head_face);
+    
 
     current_face = head_face;
     while (current_face != NULL)
@@ -113,7 +116,10 @@ obj_container read_obj_file(char* fileName, double scale, properties material){
     size_t index = 0;
     while (current_vertex != NULL)
     {
-        vertices[index++] = multiply(current_vertex->value, scale);
+        if(index < vertex_count){
+            vertices[index] = multiply(current_vertex->value, scale);
+            index++;
+        }
         list_vector* temp = current_vertex->next;
         free(current_vertex);
         current_vertex = temp;
@@ -127,37 +133,68 @@ obj_container read_obj_file(char* fileName, double scale, properties material){
 
     object* triangles = calloc(face_count, sizeof(object));
     current_face = triangulated_faces;
-    size_t index = 0;
+    index = 0;
     while (current_face != NULL)
     {
         list_face* temp = current_face->next;
-
-        face* surface = malloc(sizeof(face));
-        surface->cloud = cloud;
-        surface->indices_vertex[0] = current_face->indices_vertex[0];
-        surface->indices_vertex[1] = current_face->indices_vertex[1];
-        surface->indices_vertex[2] = current_face->indices_vertex[2];
-
-        triangles[index].geometry = surface;
-        triangles[index].bounding_box = get_face_bounding_box(surface);
-        triangles[index].surface_area = get_face_area(surface);
-        triangles[index].get_geometry_collition = (geometry_collition (*) (void*, ray)) get_face_collition;
-        triangles[index].get_bounding_box = (box (*) (void*)) get_face_bounding_box;
-        triangles[index].transform_geometry = (void (*) (matrix, void*)) transform_face_with_mutation;
-        triangles[index].material = material;
+        if(index < face_count){
+            face* surface = malloc(sizeof(face));
+            surface->cloud = cloud;
+            surface->indices_vertex[0] = current_face->indices_vertex[0];
+            surface->indices_vertex[1] = current_face->indices_vertex[1];
+            surface->indices_vertex[2] = current_face->indices_vertex[2];
+    
+            triangles[index].geometry = surface;
+            triangles[index].bounding_box = get_face_bounding_box(surface);
+            triangles[index].surface_area = get_face_area(surface);
+            triangles[index].get_geometry_collition = (geometry_collition (*) (void*, ray)) get_face_collition;
+            triangles[index].get_bounding_box = (box (*) (void*)) get_face_bounding_box;
+            triangles[index].transform_geometry = (void (*) (matrix, void*)) transform_face_with_mutation;
+            triangles[index].material = material;
+            index++;     
+        }
 
         free(current_face);
         current_face = temp;
     }
-    triangulated_faces = NULL;
 
+    triangulated_faces = NULL;
+    
     cloud->normals = create_vertex_normals(triangles, cloud, vertex_count, face_count);
+    center_obj(vertices, vertex_count);
+    printf("Added normals\n");
     obj_container result = {
         .length = face_count,
         .triangles = triangles
     };
 
     return result;
+}
+
+static void center_obj(vector* arr, size_t length){
+    double min_x = DBL_MAX;
+    double min_y = DBL_MAX;
+    double min_z = DBL_MAX;
+    double max_x = DBL_MIN;
+    double max_y = DBL_MIN;
+    double max_z = DBL_MIN;
+    for(size_t i=0; i<length; i++){
+        min_x = fmin(min_x, arr[i].x);
+        min_y = fmin(min_y, arr[i].y);
+        min_z = fmin(min_z, arr[i].z);
+        max_x = fmax(max_x, arr[i].x);
+        max_y = fmax(max_y, arr[i].y);
+        max_z = fmax(max_z, arr[i].z);
+    }
+
+    double c_x = min_x + (max_x - min_x)/2.0;
+    double c_y = min_y + (max_y - min_y)/2.0;
+    double c_z = min_z + (max_z - min_z)/2.0;
+    vector center = new_vector(c_x, c_y, c_z);
+
+    for(size_t i=0; i<length; i++){
+       arr[i] = sub_vector(arr[i], center);
+    } 
 }
 
 void free_obj(obj_container arr){
@@ -167,6 +204,7 @@ void free_obj(obj_container arr){
         cloud = surface->cloud;
         free(surface);
     }
+    free(arr.triangles);
     free(cloud->normals);
     free(cloud->vertices);
     free(cloud);
@@ -176,6 +214,10 @@ static normal* create_vertex_normals(object* triangles, polygon* cloud, size_t v
 
     normal* normals = calloc(vertex_count, sizeof(normal));
     normal* face_normals = calloc(face_count, sizeof(normal));
+
+    for(size_t i=0; i < face_count; i++){
+        face_normals[i] = (normal) {.x =0.0, .y=0.0, .z=0.0, .w=0.0};
+    }
 
     for(size_t i=0; i < vertex_count; i++){
         normals[i] = (normal) {.x =0.0, .y=0.0, .z=0.0, .w=0.0};
@@ -204,7 +246,7 @@ static normal* create_vertex_normals(object* triangles, polygon* cloud, size_t v
     for(size_t i=0; i < vertex_count; i++){
         normals[i] = to_normal(normals[i]);
         if(isnan(normals[i].x)) {
-            normals[i] = (normal) {.x =0.0, .y=0.0, .z=0.0, .w=0.0};
+            normals[i] = (normal) {.x = ERROR, .y=ERROR, .z=ERROR, .w=0.0};
         }
     }
     free(face_normals);
@@ -214,11 +256,10 @@ static normal* create_vertex_normals(object* triangles, polygon* cloud, size_t v
 static list_face* triangulate_convex_faces(list_face* head_face){
     list_face* triangulated = malloc(sizeof(list_face));
     list_face* current_triangulated = triangulated;
-    
-    size_t triangleIndex = 0;
+    current_triangulated->next = NULL;
 
     list_face* current_face = head_face;
-    while(current_face != NULL){
+    while(current_face != NULL && current_face->next != NULL ){
         if(current_face->length == 4){
             current_triangulated->indices_vertex[0] = current_face->indices_vertex[0];
             current_triangulated->indices_vertex[1] = current_face->indices_vertex[1];
@@ -226,11 +267,12 @@ static list_face* triangulate_convex_faces(list_face* head_face){
 
             current_triangulated->next = malloc(sizeof(list_face));
             current_triangulated->length = 3;
+
             current_triangulated = current_triangulated->next;
 
-            current_triangulated->indices_vertex[0] = current_face->indices_vertex[2];
-            current_triangulated->indices_vertex[1] = current_face->indices_vertex[3];
-            current_triangulated->indices_vertex[2] = current_face->indices_vertex[0];
+            current_triangulated->indices_vertex[0] = current_face->indices_vertex[0];
+            current_triangulated->indices_vertex[1] = current_face->indices_vertex[2];
+            current_triangulated->indices_vertex[2] = current_face->indices_vertex[3];
 
             current_triangulated->next = malloc(sizeof(list_face));
             current_triangulated->length = 3;
@@ -244,10 +286,9 @@ static list_face* triangulate_convex_faces(list_face* head_face){
             current_triangulated->next = malloc(sizeof(list_face));
             current_triangulated->length = 3;
             current_triangulated = current_triangulated->next;
-            current_triangulated->next = NULL;            
+            current_triangulated->next = NULL;      
         }
         current_face = current_face->next;
     }
-
     return triangulated;
 }
