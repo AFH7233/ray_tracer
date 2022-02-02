@@ -6,7 +6,7 @@
 #include "utilities/logging.h"
 
 #ifndef NUM_RAYS
-    #define NUM_RAYS 1000
+    #define NUM_RAYS 10
 #endif
 
 #ifndef NUM_BOUNCES
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]){
 
     properties light_material = {
         .color = new_color_RGB(1.0,1.0,1.0),
-        .emmitance = new_color_RGB(10.0, 10.0, 10.0),
+        .emmitance = 10.0,
         .p_diffract = 1.0,
         .angle_spread_reflect = 0.0
     };
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]){
     
     properties material = {
         .color = new_color_RGB(0.722,0.451,0.20),
-        .emmitance = new_color_RGB(COLOR_ERROR, COLOR_ERROR, COLOR_ERROR),
+        .emmitance = COLOR_ERROR,
         .p_diffract = 0.1,
         .angle_spread_reflect = 5.0
     };
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]){
         
         properties material = {
             .color = sphere_color,
-            .emmitance = new_color_RGB(COLOR_ERROR, COLOR_ERROR, COLOR_ERROR),
+            .emmitance = COLOR_ERROR,
             .p_diffract = 1.0,
             .angle_spread_reflect = 20.0
         };
@@ -224,11 +224,13 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces){
         incoming_color = scale_color(incoming_color, dot(surface_normal, generated_pixel_ray.direction));
 
         color_RGB surface_color = mix_color(hitted_object.material.color, incoming_color);
-        color_RGB brdf = add_color(hitted_object.material.emmitance, surface_color);
+        color_RGB emmitance = scale_color(hitted_object.material.color, hitted_object.material.emmitance);
+        color_RGB brdf = add_color(emmitance, surface_color);
 
         return brdf;
     } else if(hitted_object.is_hit){
-        return hitted_object.material.emmitance;
+        color_RGB emmitance = scale_color(hitted_object.material.color, hitted_object.material.emmitance);
+        return emmitance;
     } else {
         //return new_color_RGB( 0.5, 0.7, 1.0);
        return  new_color_RGB(COLOR_ERROR, COLOR_ERROR, COLOR_ERROR); //new_color_RGB( 0.5, 0.7, 1.0);

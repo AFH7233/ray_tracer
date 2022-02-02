@@ -1,5 +1,10 @@
 #ifndef _BVH_
     #define _BVH_
+
+    /*
+        Bounding volume hirearchy class, is a tree that make faster to find a collision between
+        an object and a ray
+    */
     
     #include <stdbool.h>
     #include <stdlib.h>

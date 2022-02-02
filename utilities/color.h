@@ -4,7 +4,7 @@
 
     #define divide_color(color, k)  scale_color(color, (1.0/(double)k))
     #define new_color_RGB(r,g,b) (color_RGB) {.red = r, .green = g, .blue = b}
-    #define COLOR_ERROR 0.00001
+    #define COLOR_ERROR 0.0001
 
     typedef struct pixel_color pixel_color;
     struct pixel_color

@@ -12,7 +12,7 @@
     #define new_normal(a,b,c) to_normal( (vector) {.x=a, .y=b, .z=c, .w=0.0} )
     #define new_matrix(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p)  (matrix) { .elements = { {a, b, c, d}, {e, f, g, h}, {i, j, k, l}, {m, n, o, p}} }
     #define origin_vector (vector) {.x=0.0, .y=0.0, .z=0.0, .w=0.0}
-    #define ERROR 0.0001
+    #define ERROR 0.000001
 
     #ifndef M_PI
         #define M_PI 3.14159265358979323846
