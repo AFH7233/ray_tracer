@@ -6,7 +6,7 @@
 #include "utilities/logging.h"
 
 #ifndef NUM_RAYS
-    #define NUM_RAYS 10
+    #define NUM_RAYS 1000
 #endif
 
 #ifndef NUM_BOUNCES
@@ -14,7 +14,11 @@
 #endif
 
 #ifndef NUM_THREADS
-    #define NUM_THREADS 50
+    #define NUM_THREADS 10
+#endif
+
+#ifndef REGION_SIZE
+    #define REGION_SIZE 10
 #endif
 
 color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces);
@@ -116,57 +120,103 @@ int main(int argc, char* argv[]){
         add_object(tree, bola);
     }
 
+    printf("Preparing bvh tree\n");
     distribute_bvh(tree);
 
-    printf("Starting rendering\n");
-    image strips[NUM_THREADS] = {};
-    ray_thread data[NUM_THREADS] = {};
-    pthread_t hilos[NUM_THREADS] = {};
-    size_t step = (width/NUM_THREADS);
-    size_t nose = 0;
-    for(size_t index=0; index < NUM_THREADS; index++){
-        data[index].aspect = aspect;
-        data[index].distance = d;
-        if(index == NUM_THREADS-1){
-            strips[index] = new_image((width-nose), height);
-            data[index].end_w = width;
-        } else {
-            strips[index] = new_image(step, height);
-            data[index].end_w = nose + step;
-        }
-        data[index].end_h = height;
-        data[index].height = height;
-        data[index].start_w = nose;
-        data[index].start_h = 0;
-        data[index].strip = strips[index];
-        data[index].tree = tree;
-        data[index].width = width;
-        pthread_create(&hilos[index], NULL, render_thread_pixel, &data[index]);
-        nose += step;
-    }
+    /// I'll divide the image in squares of REGION_SIZE and the threads will work on them once one is freed 
+    printf("Creating tasks\n");
+    size_t squares_width = (width/REGION_SIZE);
+    squares_width = (width%REGION_SIZE) > 0 ? squares_width + 1 : squares_width;
 
-    for(size_t index=0; index < NUM_THREADS; index++){
-        pthread_join(hilos[index], NULL);
-    }
+    size_t squares_height = (height/REGION_SIZE);
+    squares_height = (height%REGION_SIZE) > 0 ? squares_height + 1 : squares_height;
 
-    for(size_t index=0; index < NUM_THREADS; index++){
-        size_t m = 0;
-        for(size_t i=data[index].start_w; i<data[index].end_w; i++){
-            size_t n = 0;
-            for(size_t j=data[index].start_h; j<data[index].end_h; j++){
-                pixel_color color = get_pixel(data[index].strip,m,n);
-                put_pixel(screen, i, j, color);
-                n++;
+    size_t squares_total = squares_width*squares_height;
+
+    image* strips = calloc(squares_total,sizeof(image));
+    ray_thread* data = calloc(squares_total, sizeof(ray_thread));
+    pthread_t* hilos = calloc(squares_total, sizeof(pthread_t));
+    size_t index_w = 0;
+    size_t index_h = 0;
+    size_t index = 0;
+    for(size_t i=0; i < squares_width; i++){
+        for(size_t j=0; j < squares_height; j++){
+            data[index].aspect = aspect;
+            data[index].distance = d;
+            if((index_w + REGION_SIZE) >= width){
+                if((index_h + REGION_SIZE) >= height){
+                    strips[index] = new_image((width-index_w), (height-index_h));
+                    data[index].end_w = width;
+                    data[index].end_h = height;
+                } else {
+                    strips[index] = new_image((width-index_w), REGION_SIZE);
+                    data[index].end_w = width;
+                    data[index].end_h = index_h + REGION_SIZE;
+                }
+            } else {
+                if((index_h + REGION_SIZE) >= height){
+                    strips[index] = new_image(REGION_SIZE, (height-index_h));
+                    data[index].end_w = index_w + REGION_SIZE;
+                    data[index].end_h = height;
+                } else {
+                    strips[index] = new_image(REGION_SIZE, REGION_SIZE);
+                    data[index].end_w = index_w + REGION_SIZE;
+                    data[index].end_h = index_h + REGION_SIZE;
+                }
             }
-            m++;
+            data[index].height = height;
+            data[index].start_w = index_w;
+            data[index].start_h = index_h;
+            data[index].strip = strips[index];
+            data[index].tree = tree;
+            data[index].width = width;
+            data[index].status = IDLE;
+            index++;
+
+            index_h += REGION_SIZE;
+            if(index_h >= height){
+                index_h = 0;
+            }
         }
+        index_w += REGION_SIZE;
     }
 
-
+    printf("Starting rendering\n");
+    size_t available = NUM_THREADS;
+    size_t finished_tasks = 0;
+    size_t k = 0;
+    while(true){
+        if(data[k].status == IDLE && available > 0){
+            data[k].status = IN_PROGRESS;
+            pthread_create(&hilos[k], NULL, render_thread_pixel, &data[k]);
+            available--;
+        } else if(data[k].status == FINISHED){
+            data[k].status = PROCESSED;
+            size_t m = 0;
+            for(size_t i=data[k].start_w; i<data[k].end_w; i++){
+                size_t n = 0;
+                for(size_t j=data[k].start_h; j<data[k].end_h; j++){
+                    pixel_color color = get_pixel(data[k].strip,m,n);
+                    put_pixel(screen, i, j, color);
+                    n++;
+                }
+                m++;
+            }
+            available = available >= NUM_THREADS? NUM_THREADS:available+1;
+            finished_tasks++;
+            if(finished_tasks == squares_total){
+                break;
+            }
+        } 
+        k = (k >= squares_total - 1)? 0 : k+1;
+    }
     write_bmp("resultado_threads.bmp", screen);
-    for(size_t index=0; index < NUM_THREADS; index++){
+    for(size_t index=0; index < squares_total; index++){
         free_image(data[index].strip);
     }
+    free(data);
+    free(hilos);
+    free(strips);
     free_image(screen);
     free_bvh_tree(tree);
     //free_obj(container);
@@ -176,6 +226,7 @@ int main(int argc, char* argv[]){
 
 void* render_thread_pixel(void* thread_data){
     ray_thread* data = (ray_thread*) thread_data;
+    data->status = IN_PROGRESS;
     size_t m = 0;
     for(size_t i = data->start_w; i<data->end_w; i++){
         size_t n =0;
@@ -203,6 +254,7 @@ void* render_thread_pixel(void* thread_data){
         }
         m++;
     }
+    data->status = FINISHED;
     return data;
 }
 

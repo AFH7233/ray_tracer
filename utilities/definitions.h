@@ -14,21 +14,7 @@
     #include "list.h"
     #include "polygon.h"
     #include "obj_reader.h"
-
-    typedef struct ray_thread ray_thread;
-    struct  ray_thread
-    {
-        size_t start_w;
-        size_t end_w;
-        size_t start_h;
-        size_t end_h;
-        size_t width;
-        size_t height;
-        double aspect;
-        double distance;
-        bvh_tree* tree;
-        image strip;
-    };
+    #include "thread_util.h"
     
 
     // geometria must be a pointer to a sphere
