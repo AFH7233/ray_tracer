@@ -204,6 +204,7 @@ int main(int argc, char* argv[]){
             }
             available = available >= NUM_THREADS? NUM_THREADS:available+1;
             finished_tasks++;
+            printf("Finished rendering %I64d regions of %I64d\n", finished_tasks, squares_total);
             if(finished_tasks == squares_total){
                 break;
             }
