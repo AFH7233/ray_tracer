@@ -18,8 +18,15 @@ list* add_node(list* head, void* value){
     return new_head;
 }
 
+list* push_node(list* head, void* value){
+    head->value = value;
+    list* new_head = new_list();
+    head->next = new_head;
+    return new_head;
+}
+
 void free_list(list* head){
-    list* current = head;
+    list* current = head->next;
     while (current != NULL){
         if(current->value != NULL){
             free(current->value);
@@ -28,6 +35,7 @@ void free_list(list* head){
         current = current-> next;
         free(temp);
     }
+    free(head);
     return;
     
 }

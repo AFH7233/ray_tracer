@@ -6,7 +6,7 @@
 #include "utilities/logging.h"
 
 #ifndef NUM_RAYS
-    #define NUM_RAYS 1000
+    #define NUM_RAYS 10
 #endif
 
 #ifndef NUM_BOUNCES

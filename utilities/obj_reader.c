@@ -167,7 +167,8 @@ obj_container read_obj_file(char* fileName, double scale, properties material){
         .length = face_count,
         .triangles = triangles
     };
-
+    free(line);
+    fclose(file);
     return result;
 }
 
