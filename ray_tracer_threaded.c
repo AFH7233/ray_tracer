@@ -2,11 +2,12 @@
 #include <stdbool.h>
 #include <time.h>
 #include <pthread.h>
+#include "utilities/scene_reader.h"
 #include "utilities/definitions.h"
 #include "utilities/logging.h"
 
 #ifndef NUM_RAYS
-    #define NUM_RAYS 10
+    #define NUM_RAYS 40000
 #endif
 
 #ifndef NUM_BOUNCES
@@ -27,19 +28,15 @@ void* render_thread_pixel(void* thread_data);
 int main(int argc, char* argv[]){
     
     srand (time(0));
+    scene escena = read_scene(argv[1]);
 
-    size_t width = 640UL;
-    size_t height = 480UL;
+    size_t width = escena.width;
+    size_t height = escena.height;
     image screen = new_image(width, height);
 
     // Setup camera
-    camera camara = {
-        .fov = 45,
-        .position = new_vector(0.0, 15.0, -60.0),
-        .up = new_normal(0.0, 1.0, 0.0)
-    };
-
-    vector to = new_vector(0.0, 0.0, 100.0);
+    camera camara = escena.camara;
+    vector to = escena.focus;
     matrix look_at = get_look_at(camara, to);
 
     //Setup distance
@@ -50,35 +47,20 @@ int main(int argc, char* argv[]){
     list* head = new_list();
     bvh_tree* tree = new_bvh_tree(X);
 
-    sphere light_geometry = new_sphere(
-        25.0, 
-        new_vector(0.0, 100.0,0.0)
-    );
+    list* current = escena.objects;
+    while (current != NULL)
+    {
+        if(current->value != NULL){
+            object* thing = current->value;
+            transform_object(look_at, thing);
+            add_object(tree, thing);
+        }
 
-    properties light_material = {
-        .color = new_color_RGB(1.0,1.0,1.0),
-        .emmitance = 10.0,
-        .p_diffract = 1.0,
-        .angle_spread_reflect = 0.0
-    };
+        current = current->next;
+    }
 
-    object light_bola = new_sphere_object(
-        &light_geometry,
-        light_material
-    );       
 
-    transform_object(look_at, &light_bola);
-    add_object(tree, &light_bola);
-
-    
-    properties material = {
-        .color = new_color_RGB(0.722,0.451,0.20),
-        .emmitance = COLOR_ERROR,
-        .p_diffract = 0.1,
-        .angle_spread_reflect = 5.0
-    };
-
-    obj_container container = read_obj_file("teapot.obj", 7.0, material);
+    /*obj_container container = read_obj_file("teapot.obj", 7.0, material);
 
     for(size_t i=0; i<container.length; i++){
         transform_object(look_at, &container.triangles[i]);
@@ -118,7 +100,7 @@ int main(int argc, char* argv[]){
 
         transform_object(look_at, bola);
         add_object(tree, bola);
-    }
+    }*/
 
     printf("Preparing bvh tree\n");
     distribute_bvh(tree);
@@ -170,6 +152,7 @@ int main(int argc, char* argv[]){
             data[index].strip = strips[index];
             data[index].tree = tree;
             data[index].width = width;
+            data[index].rays_per_pixel = escena.rays_per_pixel;
             data[index].status = IDLE;
             index++;
 
@@ -182,7 +165,7 @@ int main(int argc, char* argv[]){
     }
 
     printf("Starting rendering\n");
-    size_t available = NUM_THREADS;
+    size_t available = escena.threads;
     size_t finished_tasks = 0;
     size_t k = 0;
     while(true){
@@ -202,7 +185,7 @@ int main(int argc, char* argv[]){
                 }
                 m++;
             }
-            available = available >= NUM_THREADS? NUM_THREADS:available+1;
+            available = available >= escena.threads? escena.threads:available+1;
             finished_tasks++;
             printf("Finished rendering %I64d regions of %I64d\n", finished_tasks, squares_total);
             if(finished_tasks == squares_total){
@@ -233,7 +216,7 @@ void* render_thread_pixel(void* thread_data){
         size_t n =0;
         for(size_t j = data->start_h; j<data->end_h; j++){
             color_RGB ray_color = new_color_RGB(0.0,0.0,0.0);
-            for(size_t k = 0; k<NUM_RAYS; k++){
+            for(size_t k = 0; k<data->rays_per_pixel; k++){
                 double rand_x = 1.0  - sqrt(2.0 - RAND(0.0,2.0));
                 double rand_y = 1.0  - sqrt(2.0 - RAND(0.0,2.0));
                 double x =  2.0*((i + rand_x)/ (double) data->height) - data->aspect;
@@ -247,7 +230,7 @@ void* render_thread_pixel(void* thread_data){
             }
 
             
-            ray_color = divide_color(ray_color, NUM_RAYS);
+            ray_color = divide_color(ray_color, data->rays_per_pixel);
             pixel_color final_color = to_pixel_color(ray_color);
 
             put_pixel(data->strip, m, n, final_color);
@@ -262,7 +245,7 @@ void* render_thread_pixel(void* thread_data){
 color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces){
 
     collition hitted_object = get_bvh_collition(root, pixel_ray);
-    if(hitted_object.is_hit && bounces < NUM_BOUNCES){
+    if(hitted_object.is_hit && bounces > 0){
         normal surface_normal = hitted_object.normal;
         vector surface_point = hitted_object.point;
 
@@ -273,7 +256,7 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces){
             generated_pixel_ray = diffuse_ray(surface_normal, surface_point);
         }
         
-        color_RGB incoming_color = render_pixel(generated_pixel_ray, root, (bounces+1));
+        color_RGB incoming_color = render_pixel(generated_pixel_ray, root, (bounces-1));
         incoming_color = scale_color(incoming_color, dot(surface_normal, generated_pixel_ray.direction));
 
         color_RGB surface_color = mix_color(hitted_object.material.color, incoming_color);

@@ -11,6 +11,7 @@
     typedef struct ray_thread ray_thread;
     struct  ray_thread
     {
+        size_t rays_per_pixel;
         size_t start_w;
         size_t end_w;
         size_t start_h;
