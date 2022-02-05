@@ -5,9 +5,9 @@
     #include <stdlib.h>
     #include <stdio.h>
     #include <float.h>
-    #include "algebra.h"
+    #include "geometric/algebra.h"
     #include "object.h"
-    #include "polygon.h"
+    #include "geometric/polygon.h"
     #include "list.h"
     #include "dynamic_array.h"
 

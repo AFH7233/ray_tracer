@@ -1,12 +1,13 @@
 #ifndef _SCENE_
     #define _SCENE_
     #include "json.h"
-    #include "sphere.h"
+    #include "geometric/sphere.h"
+    #include "geometric/algebra.h"
     #include "camera.h"
     #include "object.h"
     #include "dynamic_array.h"
     #include "obj_reader.h"
-    #include "algebra.h"
+
 
     #define RAYTRACEABLE_TYPE  "type"
 

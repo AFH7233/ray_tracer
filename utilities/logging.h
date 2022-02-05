@@ -3,7 +3,7 @@
 
     #include <stdlib.h>
     #include <stdio.h>
-    #include "algebra.h"
+    #include "geometric/algebra.h"
     #include "bvh.h"
 
     void print_vector(vector vector);

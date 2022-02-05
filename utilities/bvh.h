@@ -11,8 +11,8 @@
     #include <stdio.h>
     #include <tgmath.h>
     #include <float.h>
-    #include "algebra.h"
-    #include "box.h"
+    #include "geometric/algebra.h"
+    #include "geometric/box.h"
     #include "object.h"
 
     //I don't like it allocates memory, but Imma fix that some day

@@ -2,7 +2,7 @@
     #define _CAMERA_
 
     #include <tgmath.h>
-    #include "algebra.h"
+    #include "geometric/algebra.h"
 
     typedef struct camera camera;
     struct camera

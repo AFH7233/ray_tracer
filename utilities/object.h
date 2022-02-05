@@ -2,9 +2,9 @@
     #define _OBJECT_3D_
 
     #include <stdbool.h>
-    #include "box.h"
+    #include "geometric/box.h"
     #include "color.h"
-    #include "ray.h"
+    #include "geometric/ray.h"
 
     typedef struct properties properties;
     struct properties

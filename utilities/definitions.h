@@ -4,19 +4,20 @@
     #include <stdlib.h>
     #include <stdio.h>
 
+    #include "geometric/algebra.h"
+    #include "geometric/ray.h"
+    #include "geometric/polygon.h"
+    #include "geometric/sphere.h"
+
+    #include "object.h"
     #include "image.h"
     #include "camera.h"
-    #include "algebra.h"
-    #include "ray.h"
-    #include "object.h"
-    #include "bvh.h"
-    #include "sphere.h"
     #include "list.h"
-    #include "polygon.h"
     #include "obj_reader.h"
     #include "dynamic_array.h"
     #include "json.h"
     #include "thread_util.h"
+    #include "bvh.h"
     
 
     // geometria must be a pointer to a sphere
