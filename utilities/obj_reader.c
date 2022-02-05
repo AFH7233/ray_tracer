@@ -1,10 +1,10 @@
 #include "obj_reader.h"
 
 static list_face* triangulate_convex_faces(list_face* head_face);
-static normal* create_vertex_normals(object* triangles, polygon* cloud, size_t vertex_count, size_t face_count);
+static normal* create_vertex_normals(object* triangles, polygon* cloud, size_t vertex_count, size_t face_count, object_array* garbage);
 static void center_obj(vector* arr, size_t length);
 
-obj_container read_obj_file(char* fileName, double scale, properties material){
+obj_container read_obj_file(char* fileName, double scale, properties material, object_array* garbage){
     FILE *file = fopen(fileName, "r");
     if(file == NULL){
     fprintf(stderr, "No pude leer el archivo\n");
@@ -112,6 +112,7 @@ obj_container read_obj_file(char* fileName, double scale, properties material){
     head_face = NULL;
 
     vector* vertices = calloc(vertex_count, sizeof(vector));
+    array_push(garbage, vertices);
     current_vertex = head_vertex;
     size_t index = 0;
     while (current_vertex != NULL)
@@ -127,6 +128,7 @@ obj_container read_obj_file(char* fileName, double scale, properties material){
     head_vertex = NULL;
 
     polygon* cloud = malloc(sizeof(polygon));
+    array_push(garbage, cloud);
     cloud->num_vertices = vertex_count;
     cloud->is_transformed = false;
     cloud->vertices = vertices;
@@ -139,6 +141,7 @@ obj_container read_obj_file(char* fileName, double scale, properties material){
         list_face* temp = current_face->next;
         if(index < face_count){
             face* surface = malloc(sizeof(face));
+            array_push(garbage, surface);
             surface->cloud = cloud;
             surface->indices_vertex[0] = current_face->indices_vertex[0];
             surface->indices_vertex[1] = current_face->indices_vertex[1];
@@ -160,7 +163,7 @@ obj_container read_obj_file(char* fileName, double scale, properties material){
 
     triangulated_faces = NULL;
     
-    cloud->normals = create_vertex_normals(triangles, cloud, vertex_count, face_count);
+    cloud->normals = create_vertex_normals(triangles, cloud, vertex_count, face_count, garbage);
     center_obj(vertices, vertex_count);
     printf("Added normals\n");
     obj_container result = {
@@ -211,9 +214,10 @@ void free_obj(obj_container arr){
     free(cloud);
 }
 
-static normal* create_vertex_normals(object* triangles, polygon* cloud, size_t vertex_count, size_t face_count){
+static normal* create_vertex_normals(object* triangles, polygon* cloud, size_t vertex_count, size_t face_count,  object_array* garbage){
 
     normal* normals = calloc(vertex_count, sizeof(normal));
+    array_push(garbage, normals);
     normal* face_normals = calloc(face_count, sizeof(normal));
 
     for(size_t i=0; i < face_count; i++){

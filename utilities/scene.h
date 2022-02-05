@@ -5,6 +5,7 @@
     #include "camera.h"
     #include "object.h"
     #include "dynamic_array.h"
+    #include "obj_reader.h"
 
     #define RAYTRACEABLE_TYPE  "type"
 
@@ -40,8 +41,11 @@
     #define NUMBER_OF_THREADS "threads"
     #define RAYS_PER_PIXEL "rays"
     #define NUMBER_OF_BOUNCES "bounces"
+    #define SCALE "scale"
+    #define OBJ "OBJ"
 
     #define RAYTRACEABLE_OBJECTS  "objects"
+    #define FILE_PATH "path"
 
 
     typedef struct scene scene;

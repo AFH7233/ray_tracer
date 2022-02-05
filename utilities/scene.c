@@ -9,6 +9,7 @@ static camera get_camera(json_object* current);
 static properties get_material(json_object* current);
 static list* get_objects(json_object* current, object_array* garbage);
 static object* get_sphere(json_object* current, object_array* garbage);
+static obj_container get_obj(json_object* current, object_array* garbage);
 
 scene read_scene(char* const file_name, object_array* garbage){
     json_object* json = read_json(file_name);
@@ -230,9 +231,16 @@ static list* get_objects(json_object* current, object_array* garbage){
         }
 
         if(strncmp(tag->value, SPHERE, MAX_STRING_SIZE) == 0){
-            
             object* sphere_object = get_sphere(object_raytraceable, garbage);
             objects = add_node(objects, sphere_object);
+        } else if(strncmp(tag->value, OBJ, MAX_STRING_SIZE) == 0){
+            obj_container container = get_obj(object_raytraceable, garbage);
+            for(size_t i=0; i<container.length; i++){
+                object* triangle = malloc(sizeof(object));
+                *triangle = container.triangles[i];
+                objects = add_node(objects, triangle);
+                array_push(garbage, triangle);
+            }
         } else {
             fprintf(stderr, "Unkown object \n");
             exit(EXIT_FAILURE);            
@@ -269,4 +277,24 @@ static object* get_sphere(json_object* current, object_array* garbage){
     sphere_object->bounding_box  = get_sphere_bounding_box(sphere_geometry); 
     sphere_object->surface_area = get_sphere_area(sphere_geometry); 
     return sphere_object;
+}
+
+
+static obj_container get_obj(json_object* current, object_array* garbage){
+    if(current == NULL || current->type != JSON_OBJECT){
+        fprintf(stderr, "Cannot parse objects \n");
+        exit(EXIT_FAILURE);
+    }
+
+    json_object* path = get_json_object(current,FILE_PATH);
+    double scale = get_double(get_json_object(current, SCALE));
+    properties polygon_material = get_material(get_json_object(current, MATERIAL));
+    obj_container container = {};
+    if(path->type == JSON_VALUE){
+        container = read_obj_file(path->value, scale, polygon_material, garbage);
+    } else {
+        fprintf(stderr, "Cannot parse path \n");
+        exit(EXIT_FAILURE);
+    }
+    return container;
 }

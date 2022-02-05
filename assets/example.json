@@ -27,22 +27,18 @@
 
     "objects" : [
         {
-            "type" : "sphere",
-            "radius" : 5.0,
-            "center" :  {
-                "x" : 0.0,
-                "y" : 0.0,
-                "z" : 0.0
-            },
+            "type" : "OBJ",
+            "scale" : 5.0,
+            "path" : "../assets/bunny02.obj",
             "material" : {
                 "color" : {
-                    "r" : 255,
-                    "g" : 1,
-                    "b" : 255
+                    "r" : 184,
+                    "g" : 115,
+                    "b" : 51
                 },
                 "emmitance" : 0.0,
-                "probability diffuse" : 1.0,
-                "angle of spread" : 10.0
+                "probability diffuse" : 0.3,
+                "angle of spread" : 5.0
             } 
         },
         {

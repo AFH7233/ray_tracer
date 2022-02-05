@@ -9,6 +9,7 @@
     #include "object.h"
     #include "polygon.h"
     #include "list.h"
+    #include "dynamic_array.h"
 
 
     typedef struct  list_vector list_vector;
@@ -33,6 +34,6 @@
         object* triangles;
     };
 
-    obj_container read_obj_file(char* fileName, double scale, properties material);
+    obj_container read_obj_file(char* fileName, double scale, properties material, object_array* garbage);
     void free_obj(obj_container arr);
 #endif
