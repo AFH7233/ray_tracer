@@ -3,6 +3,8 @@
 static scene to_scene(json_object* head, object_array* garbage);
 static size_t get_integer(json_object* current);
 static double get_double(json_object* current);
+static double get_limit_double(json_object* current);
+static double get_random_double(json_object* current);
 static vector get_vector(json_object* current, bool is_normal);
 static color_RGB get_color(json_object* current);
 static camera get_camera(json_object* current);
@@ -84,8 +86,36 @@ static double get_double(json_object* current){
     if(current != NULL && current->type == JSON_VALUE){
         double real_number = atof(current->value);
         return real_number;
+    } else if(current->type == JSON_OBJECT) {
+        return get_random_double(current);
     } else {
         fprintf(stderr, "Cannot parse double \n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+//To avoid recursion with double
+static double get_limit_double(json_object* current){
+    if(current != NULL && current->type == JSON_VALUE){
+        double real_number = atof(current->value);
+        return real_number;
+    }  else {
+        fprintf(stderr, "Cannot parse double \n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+static double get_random_double(json_object* current){
+    if(current != NULL && current->type == JSON_OBJECT){
+        double min = get_limit_double(get_json_object(current, MIN_TAG));
+        double max = get_limit_double(get_json_object(current, MAX_TAG));
+        if(min > max){
+            fprintf(stderr, "Max limit is smaller than min limit\n");
+            return 0.0;
+        }
+        return RAND(min,max);
+    } else {
+        fprintf(stderr, "Cannot create double random\n");
         exit(EXIT_FAILURE);
     }
 }
@@ -125,8 +155,8 @@ static color_RGB get_color(json_object* current){
     color.red = get_double(get_json_object(current, COLOR_R));
     if(color.red > 255.0){
         fprintf(stderr, "Limiting to 255 \n");
-        color.red = 255.0;
-    } else if(color.red < 0.0){
+        color.red = 255.0 - (255.0*COLOR_ERROR);
+    } else if(color.red < COLOR_ERROR){
         fprintf(stderr, "No negative colors \n");
         color.red = COLOR_ERROR;  
     }
@@ -135,8 +165,8 @@ static color_RGB get_color(json_object* current){
     color.green = get_double(get_json_object(current, COLOR_G));
     if(color.green > 255.0){
         fprintf(stderr, "Limiting to 255 \n");
-        color.green = 255.0;
-    } else if(color.green < 0.0){
+        color.green = 255.0 - (255.0*COLOR_ERROR);
+    } else if(color.green < COLOR_ERROR){
         fprintf(stderr, "No negative colors \n");
         color.green = COLOR_ERROR;  
     }
@@ -145,8 +175,8 @@ static color_RGB get_color(json_object* current){
     color.blue = get_double(get_json_object(current, COLOR_B));
     if(color.blue > 255.0){
         fprintf(stderr, "Limiting to 255 \n");
-        color.blue = 255.0;
-    } else if(color.blue < 0.0){
+        color.blue = 255.0 - (255.0*COLOR_ERROR);
+    } else if(color.blue <COLOR_ERROR){
         fprintf(stderr, "No negative colors \n");
         color.blue = COLOR_ERROR;  
     }

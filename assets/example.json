@@ -28,8 +28,8 @@
     "objects" : [
         {
             "type" : "OBJ",
-            "scale" : 5.0,
-            "path" : "../assets/bunny02.obj",
+            "scale" : 7.0,
+            "path" : "../assets/bunny.obj",
             "material" : {
                 "color" : {
                     "r" : 184,
@@ -39,6 +39,26 @@
                 "emmitance" : 0.0,
                 "probability diffuse" : 0.3,
                 "angle of spread" : 5.0
+            } 
+        },
+        {
+            "id" : "light",
+            "type" : "sphere",
+            "radius" : 2.0,
+            "center" :  {
+                "x" : 0.0,
+                "y" : 0.0,
+                "z" : 0.0
+            },
+            "material" : {
+                "color" : {
+                    "r" : 255,
+                    "g" : 255,
+                    "b" : 255
+                },
+                "emmitance" : 0.0,
+                "probability diffuse" : 1.0,
+                "angle of spread" : 10.0
             } 
         },
         {

@@ -6,6 +6,7 @@
     #include "object.h"
     #include "dynamic_array.h"
     #include "obj_reader.h"
+    #include "algebra.h"
 
     #define RAYTRACEABLE_TYPE  "type"
 
@@ -47,6 +48,9 @@
     #define RAYTRACEABLE_OBJECTS  "objects"
     #define FILE_PATH "path"
 
+    #define OBJECT_REPETITIONS "repetitions"
+    #define MIN_TAG "min"
+    #define MAX_TAG "max"
 
     typedef struct scene scene;
     struct scene

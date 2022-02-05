@@ -5,6 +5,7 @@
 
     
     #define RAND(a, b)  ( a + ERROR + ( b + (-1.0 * a )) * (rand() / (double) RAND_MAX) )
+    #define RAND_INT(a, b)  ( a + ( b + (-1 * a )) * rand())
 
     #define divide(a, k) scale_vector(a, (1.0/k))
     #define multiply(a, k) scale_vector(a, k)
