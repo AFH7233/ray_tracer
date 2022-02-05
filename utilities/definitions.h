@@ -14,6 +14,8 @@
     #include "list.h"
     #include "polygon.h"
     #include "obj_reader.h"
+    #include "dynamic_array.h"
+    #include "json.h"
     #include "thread_util.h"
     
 

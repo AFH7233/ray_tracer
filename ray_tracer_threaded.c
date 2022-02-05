@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <pthread.h>
-#include "utilities/scene_reader.h"
+#include "utilities/scene.h"
 #include "utilities/definitions.h"
 #include "utilities/logging.h"
 
@@ -28,7 +28,8 @@ void* render_thread_pixel(void* thread_data);
 int main(int argc, char* argv[]){
     
     srand (time(0));
-    scene escena = read_scene(argv[1]);
+    object_array garbage = new_array();
+    scene escena = read_scene(argv[1], garbage);
 
     size_t width = escena.width;
     size_t height = escena.height;
@@ -44,7 +45,6 @@ int main(int argc, char* argv[]){
     double d = sqrt(aspect*aspect + 1.0)/(2.0*tan(M_PI*camara.fov/360.0));
 
     // Setup objects
-    list* head = new_list();
     bvh_tree* tree = new_bvh_tree(X);
 
     list* current = escena.objects;
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]){
     free_image(screen);
     free_bvh_tree(tree);
     //free_obj(container);
-    free_list(head);
+    free_array(garbage);
     return EXIT_SUCCESS;
 }
 

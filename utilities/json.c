@@ -1,21 +1,19 @@
-#include "scene_reader.h"
+#include "json.h"
 
-static scene to_scene(list* head);
-static size_t get_integer(list* current);
-static double get_double(list* current);
-static vector get_vector(list* current, bool is_normal);
-static color_RGB get_color(list* current);
-static camera get_camera(list* current);
-static properties get_material(list* current);
+
 static bool isnumber(char* line, size_t index);
 static bool ispositive(char* line);
 static bool iswhole(char* value);
 static bool isexponent(char* value);
 static bool issigned(char* value);
-static object* get_sphere(list* current);
+static size_t hash(char* str);
+static bool put(json_object** map, char* key, json_object* value);
+static json_object* get(json_object** map, char* key);
+static json_object* to_json_object(list* head);
+static json_object* to_json_array(list* head);
+static bool set_json_value(json_object* object, list* current);
 
-
-scene read_scene(char* const file_name){
+json_object* read_json(char* const file_name){
     FILE *file = fopen(file_name, "r");
     if(file == NULL){
         fprintf(stderr, "No pude leer el archivo\n");
@@ -32,7 +30,7 @@ scene read_scene(char* const file_name){
         size_t index = 0;
 
         while(line[index] != '\0' && index < line_size){
-        fprintf(stderr,"size: %I64d \t line: %s",line_size, line);
+        //fprintf(stderr,"size: %I64d \t line: %s",line_size, line);
             switch (state)
                 {
                 case JSON_SEARCH:{
@@ -210,20 +208,7 @@ scene read_scene(char* const file_name){
     }
     fprintf(stdout, "Finished creating parsing tree\n");
 
-    list* c = head;
-    //Clean strings
-    while(c != NULL){
-        if(c->value != NULL){
-            parse_tree* node = (parse_tree*) c->value;
-            fprintf(stderr, "%s\n", node->value);
-        }
-        c = c->next;
-    }
-    
-    scene result = {};//to_scene(head);
-
-
-
+    json_object* root = to_json_object(head);
     list* current = head;
     //Clean strings
     while(current != NULL){
@@ -239,8 +224,50 @@ scene read_scene(char* const file_name){
     free_list(head);
     free(line);
     fclose(file);
-    fprintf(stdout, "Finished creating scene\n");
-    return result;
+    fprintf(stdout, "Finished creating json\n");
+    return root;
+}
+
+json_object* get_json_object(json_object* root, char* key){
+    if(root->type == JSON_OBJECT){
+       json_object* result = get(root->map, key);
+       if(result == NULL){
+           fprintf(stderr, "Element not found\n");
+           return NULL;
+       }
+       return result;
+    } else {
+        fprintf(stderr, "This element is not the desired type\n");
+        return NULL;
+    }
+}
+json_object* get_json_element(json_object* root, size_t index){
+    if(root->type == JSON_ARRAY){
+        if(index < root->length){
+            return root->map[index];
+        } else {
+           fprintf(stderr, "Element not found\n");
+           return NULL;
+        }
+    } else {
+        fprintf(stderr, "This element is not the desired type\n");
+        return NULL;
+    } 
+}
+
+
+
+void free_json(json_object* root){
+   
+    if(root->type == JSON_OBJECT || root->type == JSON_ARRAY || root->type == JSON_COLLISION){
+        for(size_t i=0; i<root->length; i++){
+            free(root->map[i]);
+            root->map[i]=NULL;
+        }
+        free(root);
+    } else if(root->type == JSON_VALUE){
+        free(root);
+    }
 }
 
 
@@ -331,331 +358,199 @@ static bool issigned(char* value){
     return false;
 }
 
-static scene to_scene(list* head){
-    scene empty = {
-        .rays_per_pixel = 10,
-        .bounces = 1,
-        .focus = new_vector(0.0, 0.0, 100.0),
-        .width = 640,
-        .height = 480,
-        .threads = 10,
-    };
-    list* current = head;
-    empty.objects = new_list();
-    size_t inner = 0;
-    while(current != NULL){
-        parse_tree* node = (parse_tree*) current->value;
-        if(node->type == TAG){
-                    
-            if(strncmp(node->value, WIDTH, strlen(WIDTH)) == 0 ){
-                current = current->next;
-                empty.width = get_integer(current);
-            } else if( strncmp(node->value, HEIGHT, strlen(HEIGHT)) == 0 ){
-                current = current->next;
-                empty.height = get_integer(current);            
-            } else if( strncmp(node->value, NUMBER_OF_BOUNCES, strlen(NUMBER_OF_BOUNCES)) == 0 ){
-                current = current->next;
-                empty.bounces = get_integer(current);           
-            } else if( strncmp(node->value, NUMBER_OF_THREADS, strlen(NUMBER_OF_THREADS)) == 0 ){
-                current = current->next;
-                empty.threads = get_integer(current);           
-            } else if( strncmp(node->value, RAYS_PER_PIXEL, strlen(RAYS_PER_PIXEL)) == 0 ){
-                current = current->next;
-                empty.rays_per_pixel = get_integer(current);           
-            } else if( strncmp(node->value, CAMERA, strlen(CAMERA)) == 0 ){
-                inner++;
-                current = current->next;
-                empty.camara = get_camera(current);
-            } else if( strncmp(node->value, FOCUS, strlen(FOCUS)) == 0 ){
-                inner++;
-                current = current->next;
-                empty.focus = get_vector(current, false);
-            } else if( strncmp(node->value, SPHERE, strlen(SPHERE)) == 0 ){
-                inner++;
-                current = current->next;
-                empty.objects = push_node(empty.objects, get_sphere(current));
-            } 
-            
-        } else if(node->type == OBJECT_END){
-            inner--;
-            if(inner == 0){
-                break;
-            } 
-        } else if(node->type == OBJECT_BEGIN){
-            inner++;
-        }
-        if(current == NULL){
-            break;
-        }
-        current = current->next;
+
+static size_t hash(char* str){
+    size_t length = strnlen(str, MAX_STRING_SIZE);
+    size_t mul = 1;
+    size_t hash = 0;
+    for(size_t i=length; i>0; i--){
+        hash += (str[i-1])*mul;
+        mul *= 32;
     }
-    return empty;
+    return hash % MAP_SIZE;
 }
 
-static size_t get_integer(list* current){
-    if(current == NULL){
-        fprintf(stderr, "Cannot parse integer \n");
-        exit(EXIT_FAILURE);
-    }
-    parse_tree* node = (parse_tree*) current->value;
-    int real_number = atoi(node->value);
-    if(real_number < 0){
-        fprintf(stderr, "Invalid number for the ray tracer\n");
-        exit(EXIT_FAILURE);        
-    }
-    return real_number;
-}
-
-static double get_double(list* current){
-    if(current == NULL){
-        fprintf(stderr, "Cannot parse width \n");
-        exit(EXIT_FAILURE);
-    }
-    parse_tree* node = (parse_tree*) current->value;
-    double real_number = atof(node->value);
-    return real_number;
-}
-
-static vector get_vector(list* head, bool is_normal){
-    vector point = {};
-
-    if(is_normal) {
-        point = new_normal(0.0,1.0,0.0);
-    } else {
-        point = new_vector(0.0, 0.0, 0.0);
-    }
-
-    list* current = head;
-    size_t inner = 0;
-    while(current != NULL){
-        
-        parse_tree* node = (parse_tree*) current->value;
-        if(node->type == TAG){
-
-            if(strncmp(node->value, VECTOR_X, strlen(VECTOR_X)) == 0 ){
-                current = current->next;
-                point.x = get_double(current);
-            } else if( strncmp(node->value, VECTOR_Y, strlen(VECTOR_Y)) == 0){
-                current = current->next;
-                point.y = get_double(current);            
-            } else if( strncmp(node->value, VECTOR_Z, strlen(VECTOR_Z)) == 0){
-                current = current->next;
-                point.z = get_double(current);               
-            }
-        } else if(node->type == OBJECT_END){
-            inner--;
-            if(inner == 0){
-                break;
-            } 
-        } else if(node->type == OBJECT_BEGIN){
-            inner++;
-        }
-
-        if(current == NULL){
-            break;
-        }
-
-        current = current->next;
-    }
-
-    if(is_normal){
-        return to_normal(point);
-    } else {
-        return point;
-    }
-}
-
-static color_RGB get_color(list* head){
-    color_RGB color = new_color_RGB(1.0, 1.0, 1.0);
-
-    list* current = head;
-    size_t inner = 0;
-    while(current != NULL){
-        parse_tree* node = (parse_tree*) current->value;
-        if(node->type == TAG){
-            if(strncmp(node->value, COLOR_R, strlen(COLOR_R)) == 0 ){
-                current = current->next;
-                int c = get_integer(current);
-                c = c > 255? 255 : c;
-                color.red = (c/255.0) + COLOR_ERROR;
-            } else if( strncmp(node->value, COLOR_G, strlen(COLOR_G)) == 0){
-                current = current->next;
-                int c = get_integer(current);
-                c = c > 255? 255 : c;
-                color.green = (c/255.0) + COLOR_ERROR;  
-            } else if( strncmp(node->value, COLOR_B, strlen(COLOR_B)) == 0){
-                current = current->next;
-                int c = get_integer(current);
-                c = c > 255? 255 : c;
-                color.blue = (c/255.0) + COLOR_ERROR;               
-            }
-        } else if(node->type == OBJECT_END){
-            inner--;
-            if(inner == 0){
-                break;
-            } 
-        } else if(node->type == OBJECT_BEGIN){
-            inner++;
-        }
-        if(current == NULL){
-            break;
-        }
-        current = current->next;
-    }
-    return color;
-}
-
-static properties get_material(list* head){
-    properties material = {
-        .color = new_color_RGB(1.0,1.0,1.0),
-        .emmitance = COLOR_ERROR,
-        .p_diffract = 1.0,
-        .angle_spread_reflect = 0.0
-    };
-    list* current = head;
-    size_t inner=0;
-    while(current != NULL) {
-        parse_tree* node = (parse_tree*) current->value;
-                                fprintf(stderr, "%s\n", node->value);
-        if(node->type == TAG){
-            if(strncmp(node->value, COLOR, strlen(COLOR)) == 0 ){
-                inner++;
-                current = current->next;
-                material.color = get_color(current);
-            } else if( strncmp(node->value, MATERIAL_EMMITANCE, strlen(MATERIAL_EMMITANCE)) == 0 ){
-                current = current->next;
-                material.emmitance = get_double(current) + COLOR_ERROR;
-            } else if( strncmp(node->value, MATERIAL_P_DIFF, strlen(MATERIAL_P_DIFF)) == 0 ){
-                current = current->next;
-                material.p_diffract = get_double(current);
-                if(material.p_diffract < 0.0 || material.p_diffract > 1.0){
-                    fprintf(stderr, "Invalid probability, setting default \n");
-                    material.p_diffract = 0.5;
-                } 
-            } else if( strncmp(node->value, MATERIAL_SPREAD, strlen(MATERIAL_SPREAD)) == 0 ){
-                current = current->next;
-                material.angle_spread_reflect = get_double(current);
-                if(material.angle_spread_reflect < 0.0 || material.angle_spread_reflect > 360.0){
-                    fprintf(stderr, "Invalid angle, setting default \n");
-                    material.angle_spread_reflect = ERROR;
-                } 
-            } 
-        } else if(node->type == OBJECT_END){
-            inner--;
-            if(inner == 0){
-                break;
-            } 
-        } else if(node->type == OBJECT_BEGIN){
-            inner++;
-        }
-        if(current == NULL){
-            break;
-        }
-        current = current->next;
-    }
-    return material;
-}
-
-
-static camera get_camera(list* head){
-    camera camara = {
-        .fov = 45,
-        .position = new_vector(0.0, 15.0, -60.0),
-        .up = new_normal(0.0, 1.0, 0.0)
-    };
-    list* current = head;
-    size_t inner = 0;
-    while(current != NULL) {
-        parse_tree* node = (parse_tree*) current->value;
-        if(node->type == TAG){
-            if(strncmp(node->value, CAMERA_FOV, strlen(CAMERA_FOV)) == 0 ){
-                current = current->next;
-                camara.fov = get_double(current);
-            } else if( strncmp(node->value, CAMERA_POSITION, strlen(CAMERA_POSITION)) == 0 ){
-                inner++;
-                current = current->next;
-                camara.position = get_vector(current, false);          
-            } else if( strncmp(node->value, CAMERA_UP, strlen(CAMERA_UP)) == 0 ){
-                inner++;
-                current = current->next;
-                camara.up = get_vector(current, true);          
-            }
-        } else if(node->type == OBJECT_END){
-            inner--;
-            if(inner == 0){
-                break;
-            } 
-        } else if(node->type == OBJECT_BEGIN){
-            inner++;
-        }
-        if(current == NULL){
-            break;
-        }
-        current = current->next;
-    }
-    fprintf(stderr, "%s\n", "sali");
-    return camara;
-}
-
-static object* get_sphere(list* head){
-    sphere* sphere_geometry = malloc(sizeof(sphere));
-    sphere_geometry->radio = 2.0;
-    sphere_geometry->center = new_vector(0.0, 0.0,0.0);
-
-    properties sphere_material = {
-        .color = new_color_RGB(1.0,1.0,1.0),
-        .emmitance = 10.0,
-        .p_diffract = 1.0,
-        .angle_spread_reflect = 0.0
-    };
-
-    object* sphere_object = malloc(sizeof(object));
-    sphere_object->geometry = sphere_geometry; 
-    sphere_object->material = sphere_material; 
-    sphere_object->get_geometry_collition = (geometry_collition (*) (void*, ray)) get_sphere_collition; 
-    sphere_object->transform_geometry = (void (*) (matrix, void*))  transform_sphere_with_mutation; 
-    sphere_object->get_bounding_box = (box (*) (void*)) get_sphere_bounding_box; 
-
-    list* current = head;
-    size_t inner = 0;
-    while(current != NULL) {
-        parse_tree* node = (parse_tree*) current->value;
-        if(node->type == TAG){
-            if(strncmp(node->value, RADIUS, strlen(RADIUS)) == 0 ){
-                current = current->next;
-                sphere_geometry->radio = get_double(current);
-                if(sphere_geometry->radio < ERROR){
-                    fprintf(stderr, "Invalid negative radius, goingt to default 1.0 \n");
-                    sphere_geometry->radio = 1.0;
+static bool put(json_object** map, char* key, json_object* value){
+    size_t index = hash(key);
+    if(map[index] != NULL){
+        fprintf(stdout, "Warning: There is a collision\n");
+        if(map[index]->type != JSON_COLLISION){
+            json_object* collision = malloc(sizeof(json_object));
+            collision->type = JSON_COLLISION;
+            collision->cap = 10;
+            collision->length = 2;
+            collision->map = calloc(10, sizeof(json_object*));
+            json_object* temp = map[index];
+            collision->map[0] = temp;
+            collision->map[1] = value;
+            map[index] = collision;
+        } else {
+            for(size_t i=0; i<map[index]->length; i++){
+                if(strncmp(map[index]->tag, key, MAX_STRING_SIZE) == 0){
+                    return false;
                 }
-            } else if( strncmp(node->value, CENTER, strlen(CENTER)) == 0 ){
-                inner++;
-                current = current->next;
-                sphere_geometry->center = get_vector(current, false);          
-            } else if( strncmp(node->value, MATERIAL, strlen(MATERIAL)) == 0 ){
-                inner++;
-                current = current->next;
-                sphere_object->material = get_material(current);        
             }
-        } else if(node->type == OBJECT_END){
-            inner--;
-            if(inner == 0){
-                break;
-            } 
-        } else if(node->type == OBJECT_BEGIN){
-            inner++;
+            if(map[index]->length < map[index]->cap){
+                map[index]->map[map[index]->length] = value;
+                map[index]->length++;
+            } else {
+                json_object** arr = map[index]->map;
+                map[index]->map = calloc(2*map[index]->cap, sizeof(json_object*));
+                for(size_t i=0; i<map[index]->length; i++){
+                    map[index]->map[i] = arr[i];
+                }
+                free(arr);
+                map[index]->cap = 2*map[index]->cap;
+                map[index]->map[map[index]->length] = value;
+                map[index]->length++;               
+            }
         }
-        if(current == NULL){
+    } else {
+        map[index] = value;
+    }
+
+    return true;
+}
+
+static json_object* get(json_object** map, char* key){
+    size_t index = hash(key);
+    if(map[index] != NULL){
+        if(map[index]->type == JSON_COLLISION){
+            for(size_t i=0; i<map[index]->length; i++){
+                if(strncmp(map[index]->tag, key, MAX_STRING_SIZE) == 0){
+                    return map[index]->map[i];
+                }
+            }
+        } else {
+            return map[index];
+        }
+    } 
+
+    return NULL;
+}
+
+
+static json_object* to_json_object(list* head){
+    list* current = head;
+    json_object* root = NULL;
+    while(current != NULL){
+        if(current->value != NULL && !current->is_visited){
+            parse_tree* node = (parse_tree*) current->value;
+            if(node->type == OBJECT_BEGIN){
+                root = malloc(sizeof(json_object));
+                root->type = JSON_OBJECT;
+                current->is_visited = true;
+                root->cap = MAP_SIZE;
+                root->length = MAP_SIZE;
+                root->map = calloc(MAP_SIZE, sizeof(json_object*));
+            } else if (node->type == TAG){
+                json_object* object = malloc(sizeof(json_object));
+                strncpy(object->tag, node->value, MAX_STRING_SIZE_COPY);
+                current->is_visited = true;
+                current = current->next;
+                bool is_set = set_json_value(object, current);
+ 
+                if(is_set){
+                    put(root->map, object->tag, object);
+                } else {
+                    fprintf(stderr, "Bad value\n");
+                    exit(EXIT_FAILURE);
+                }
+            } else if(node->type == ARRAY_END){
+                fprintf(stderr, "Unbalanced object\n");
+                exit(EXIT_FAILURE);
+            }  else if(node->type == OBJECT_END){
+                current->is_visited = true;
+                break;
+            }
+        }
+        if(current==NULL){
             break;
         }
         current = current->next;
     }
-
-    sphere_object->bounding_box  = get_sphere_bounding_box(sphere_geometry); 
-    sphere_object->surface_area = get_sphere_area(sphere_geometry); 
-    return sphere_object;
+    return root;
 }
 
+static json_object* to_json_array(list* head){
+    list* current = head;
+    json_object* root = NULL;
+    while(current != NULL){
+        if(current->value != NULL && !current->is_visited){
+            parse_tree* node = (parse_tree*) current->value;
+            if(node->type == ARRAY_BEGIN && root == NULL){
+                root = malloc(sizeof(json_object));
+                root->type = JSON_ARRAY;
+                current->is_visited = true;
+                root->cap = 10;
+                root->length = 0;
+                root->map = calloc(10, sizeof(json_object*));
+            } else if (node->type == VALUE || node->type == ARRAY_BEGIN || node->type == OBJECT_BEGIN){
+                json_object* object = malloc(sizeof(json_object));
+                strncpy(object->tag, node->value, MAX_STRING_SIZE_COPY);
+                bool is_set = set_json_value(object, current);
+                if(is_set){
+                    if(root->length < root->cap){
+                        root->map[root->length] = object;
+                        root->length++;  
+                    } else {
+                        json_object** arr = root->map;
+                        root->map = calloc(2*root->cap, sizeof(json_object*));
+                        
+                        for(size_t i=0; i<root->length; i++){
+                            root->map[i] = arr[i];
+                        }
+                        free(arr);
+                        root->cap = 2*root->cap;
+                        root->map[root->length] = object;
+                        root->length++;  
+                    }
+                } else {
+                    fprintf(stderr, "Bad value\n");
+                    exit(EXIT_FAILURE);
+                }
+            } else if(node->type == OBJECT_END){
+                fprintf(stderr, "Unbalanced array\n");
+                exit(EXIT_FAILURE);
+            } else if(node->type == ARRAY_END){
+                current->is_visited = true;
+                break;
+            }
+        }
+        if(current==NULL){
+            break;
+        }
+        current = current->next;
+    }
+    return root;
+}
 
-
+static bool set_json_value(json_object* object, list* current){
+    if(current != NULL && current->value != NULL){
+        parse_tree* node = (parse_tree*) current->value;
+        if(node->type == VALUE){
+            current->is_visited = true;
+            object->type = JSON_VALUE;
+            strncpy(object->value, node->value, MAX_STRING_SIZE_COPY);
+            return true;
+        } else if(node->type == OBJECT_BEGIN) {
+            json_object* root = to_json_object(current);
+            object->type = root->type;
+            object->length = root->length;
+            object->cap = root->cap;
+            object->map = root->map;
+            free(root);
+            return true;
+        } else if(node->type == ARRAY_BEGIN) {
+            json_object* root = to_json_array(current);
+            object->type = root->type;
+            object->length = root->length;
+            object->cap = root->cap;
+            object->map = root->map;
+            free(root);
+            return true;
+        }
+    }
+    return false;
+}   
 
