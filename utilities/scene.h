@@ -59,5 +59,5 @@
     
 
 
-    scene read_scene(char* const file_name, object_array garbage);
+    scene read_scene(char* const file_name, object_array* garbage);
 #endif

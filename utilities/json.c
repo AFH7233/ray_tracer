@@ -24,7 +24,10 @@ json_object* read_json(char* const file_name){
     parse_state state = JSON_SEARCH;
     list* stack = new_list();
     list* head = stack;
-
+    //Dirty hack cus i forgot to consider arrays
+    char inside_array = 'a';
+    char inside_object = 'o';
+    object_array inside_stack = new_array();
     while(fgets(line, MAX_LINE, file) != NULL){
         size_t line_size = strnlen(line, MAX_LINE);
         size_t index = 0;
@@ -35,6 +38,7 @@ json_object* read_json(char* const file_name){
                 {
                 case JSON_SEARCH:{
                     if((line[index]) == OBJECT_OPEN){
+                        array_push(&inside_stack, &inside_object);
                         parse_tree* current = malloc(sizeof(parse_tree));
                         current->type = OBJECT_BEGIN;
                         current->value = calloc(2,sizeof(char));
@@ -53,6 +57,7 @@ json_object* read_json(char* const file_name){
                 }
                 case ARRAY_SEARCH:{
                     if((line[index]) == ARRAY_OPEN){
+                        array_push(&inside_stack, &inside_array);
                         parse_tree* current = malloc(sizeof(parse_tree));
                         current->type = ARRAY_BEGIN;
                         current->value = calloc(2,sizeof(char));
@@ -171,8 +176,21 @@ json_object* read_json(char* const file_name){
                 }
                 case SEPARATOR_SEARCH:{
                     if(line[index] == SEPARATOR ){ 
-                        state = TAG_SEARCH;
+                        
+                        char* inside_what = array_peek(&inside_stack);
+
+                        if(inside_what == NULL){
+                            fprintf(stderr, "Not balanced braces\n");
+                            exit(EXIT_FAILURE);
+                        }
+                        if(*inside_what == 'a'){
+                            state = VALUE_SEARCH;
+                        } else {
+                            state = TAG_SEARCH;
+                        }
+
                     } else if(line[index] == OBJECT_CLOSE ) {
+                        array_pop(&inside_stack);
                         parse_tree* current = malloc(sizeof(parse_tree));
                         current->type = OBJECT_END;
                         current->value = calloc(2,sizeof(char));
@@ -182,6 +200,7 @@ json_object* read_json(char* const file_name){
                         state = SEPARATOR_SEARCH;                   
                     } 
                 else if(line[index] == ARRAY_CLOSE ) {
+                        array_pop(&inside_stack);
                         parse_tree* current = malloc(sizeof(parse_tree));
                         current->type = ARRAY_END;
                         current->value = calloc(2,sizeof(char));
@@ -224,6 +243,7 @@ json_object* read_json(char* const file_name){
     free_list(head);
     free(line);
     fclose(file);
+    free(inside_stack.elements);
     fprintf(stdout, "Finished creating json\n");
     return root;
 }

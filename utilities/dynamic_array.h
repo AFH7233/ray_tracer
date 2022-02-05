@@ -11,8 +11,10 @@
     };
 
     object_array new_array();
-    void array_add(object_array arr, size_t index, void* value);
-    void array_push(object_array arr, void* value);
-    void* array_get(object_array arr, size_t index);
-    void free_array(object_array arr);
+    void array_add(object_array* arr, size_t index, void* value);
+    void array_push(object_array* arr, void* value);
+    void* array_pop(object_array* arr);
+    void* array_peek(object_array* arr);
+    void* array_get(object_array* arr, size_t index);
+    void free_array(object_array* arr);
 #endif

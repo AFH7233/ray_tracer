@@ -18,6 +18,7 @@
         size_t end_h;
         size_t width;
         size_t height;
+        size_t bounces;
         double aspect;
         double distance;
         bvh_tree* tree;

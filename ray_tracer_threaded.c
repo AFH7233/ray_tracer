@@ -29,7 +29,7 @@ int main(int argc, char* argv[]){
     
     srand (time(0));
     object_array garbage = new_array();
-    scene escena = read_scene(argv[1], garbage);
+    scene escena = read_scene(argv[1], &garbage);
 
     size_t width = escena.width;
     size_t height = escena.height;
@@ -153,6 +153,7 @@ int main(int argc, char* argv[]){
             data[index].tree = tree;
             data[index].width = width;
             data[index].rays_per_pixel = escena.rays_per_pixel;
+            data[index].bounces = escena.bounces;
             data[index].status = IDLE;
             index++;
 
@@ -204,7 +205,7 @@ int main(int argc, char* argv[]){
     free_image(screen);
     free_bvh_tree(tree);
     //free_obj(container);
-    free_array(garbage);
+    free_array(&garbage);
     return EXIT_SUCCESS;
 }
 
@@ -226,7 +227,7 @@ void* render_thread_pixel(void* thread_data){
                     new_normal(x, y, data->distance)
                 );
 
-                ray_color = add_color(ray_color, render_pixel(pixel_ray, data->tree, 0));
+                ray_color = add_color(ray_color, render_pixel(pixel_ray, data->tree, data->bounces));
             }
 
             
@@ -245,7 +246,7 @@ void* render_thread_pixel(void* thread_data){
 color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces){
 
     collition hitted_object = get_bvh_collition(root, pixel_ray);
-    if(hitted_object.is_hit && bounces > 0){
+    if(hitted_object.is_hit && bounces >= 0){
         normal surface_normal = hitted_object.normal;
         vector surface_point = hitted_object.point;
 
@@ -265,7 +266,7 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces){
 
         return brdf;
     } else if(hitted_object.is_hit){
-        color_RGB emmitance = scale_color(hitted_object.material.color, hitted_object.material.emmitance);
+        color_RGB emmitance = scale_color(hitted_object.material.color, hitted_object.material.emmitance + COLOR_ERROR);
         return emmitance;
     } else {
         //return new_color_RGB( 0.5, 0.7, 1.0);

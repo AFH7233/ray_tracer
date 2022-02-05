@@ -10,39 +10,56 @@ object_array new_array(){
     return arr;
 }
 
-void array_push(object_array arr, void* value){
-    array_add(arr, arr.length, value);
+void array_push(object_array* arr, void* value){
+    array_add(arr, arr->length, value);
+    arr->length++;
 }
 
-void array_add(object_array arr, size_t index, void* value){
-    if(index < arr.cap){
-        arr.elements[index] = value;
+void* array_pop(object_array* arr){
+    if(arr->length > 0){
+        arr->length--;
+        return arr->elements[arr->length];
+    }
+    return NULL;
+}
+
+void* array_peek(object_array* arr){
+    if(arr->length > 0){
+        return arr->elements[arr->length-1];
+    }
+    return NULL;
+}
+
+
+void array_add(object_array* arr, size_t index, void* value){
+    if(index < arr->cap){
+        arr->elements[index] = value;
     } else {
-        void** temp = arr.elements;
-        arr.elements = calloc(2*arr.cap, sizeof(unsigned char*));
-        for(size_t i=0; i<arr.length; i++){
-            arr.elements[i] = temp[i];
+        void** temp = arr->elements;
+        arr->elements = calloc(2*arr->cap, sizeof(unsigned char*));
+        for(size_t i=0; i<arr->length; i++){
+            arr->elements[i] = temp[i];
         }
         free(temp);
-        arr.cap = 2*arr.cap;
-        arr.elements[arr.length] = value;
-        arr.length++;               
+        arr->cap = 2*arr->cap;
+        arr->elements[arr->length] = value;
+        arr->length++;               
     }
 }
 
 
-void* array_get(object_array arr, size_t index){
-    if(index < arr.length){
-        return arr.elements[index];
+void* array_get(object_array* arr, size_t index){
+    if(index < arr->length){
+        return arr->elements[index];
     } else {
         return NULL;
     }
 }
-void free_array(object_array arr){
-    for(size_t i=0; i<arr.length; i++){
-        if(arr.elements[i] != NULL){
-            free(arr.elements[i]);
-            arr.elements[i] = NULL;
+void free_array(object_array* arr){
+    for(size_t i=0; i<arr->length; i++){
+        if(arr->elements[i] != NULL){
+            free(arr->elements[i]);
+            arr->elements[i] = NULL;
         }
     }
 }

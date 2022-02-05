@@ -1,16 +1,16 @@
 #include "scene.h"
 
-static scene to_scene(json_object* head, object_array garbage);
+static scene to_scene(json_object* head, object_array* garbage);
 static size_t get_integer(json_object* current);
 static double get_double(json_object* current);
 static vector get_vector(json_object* current, bool is_normal);
 static color_RGB get_color(json_object* current);
 static camera get_camera(json_object* current);
 static properties get_material(json_object* current);
-static list* get_objects(json_object* current, object_array garbage);
-static object* get_sphere(json_object* current, object_array garbage);
+static list* get_objects(json_object* current, object_array* garbage);
+static object* get_sphere(json_object* current, object_array* garbage);
 
-scene read_scene(char* const file_name, object_array garbage){
+scene read_scene(char* const file_name, object_array* garbage){
     json_object* json = read_json(file_name);
     scene escnea =  to_scene(json, garbage);
     free_json(json);
@@ -18,7 +18,7 @@ scene read_scene(char* const file_name, object_array garbage){
 }
 
 
-static scene to_scene(json_object* json, object_array garbage){
+static scene to_scene(json_object* json, object_array* garbage){
     scene empty = {
         .rays_per_pixel = 10,
         .bounces = 1,
@@ -170,12 +170,12 @@ static camera get_camera(json_object* current){
     camara.up = get_vector(get_json_object(current, CAMERA_UP), true);  
 
 
-    if(camara.fov > 0.0){
+    if(camara.fov < 0.0){
         fprintf(stderr, "Invalid fov, setting default \n");
         camara.fov = 75;
     } 
 
-    if(norma(camara.up) > 0.0){
+    if(norma(camara.up) < ERROR){
         fprintf(stderr, "Invalid up vector, setting default \n");
         camara.up = new_normal(0.0,1.0,0.0);
     } 
@@ -183,13 +183,14 @@ static camera get_camera(json_object* current){
     return camara;
 }
 
-static list* get_objects(json_object* current, object_array garbage){
+static list* get_objects(json_object* current, object_array* garbage){
     if(current == NULL || current->type != JSON_ARRAY){
         fprintf(stderr, "Cannot parse objects \n");
         exit(EXIT_FAILURE);
     }
     list* objects = new_list();
     for(size_t i=0; i<current->length; i++){
+        
         json_object* object_raytraceable = get_json_element(current, i);
         if(object_raytraceable == NULL || object_raytraceable->type != JSON_OBJECT){
             fprintf(stderr, "Invalid internal object \n");
@@ -203,8 +204,9 @@ static list* get_objects(json_object* current, object_array garbage){
         }
 
         if(strncmp(tag->value, SPHERE, MAX_STRING_SIZE) == 0){
+            
             object* sphere_object = get_sphere(object_raytraceable, garbage);
-            add_node(objects, sphere_object);
+            objects = add_node(objects, sphere_object);
         } else {
             fprintf(stderr, "Unkown object \n");
             exit(EXIT_FAILURE);            
@@ -213,7 +215,7 @@ static list* get_objects(json_object* current, object_array garbage){
     return objects;
 }
 
-static object* get_sphere(json_object* current, object_array garbage){
+static object* get_sphere(json_object* current, object_array* garbage){
     if(current == NULL || current->type != JSON_OBJECT){
         fprintf(stderr, "Cannot parse objects \n");
         exit(EXIT_FAILURE);

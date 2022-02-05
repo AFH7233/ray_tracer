@@ -6,6 +6,7 @@
     #include <string.h>
     #include <stdbool.h>
     #include <ctype.h>
+    #include "dynamic_array.h"
     #include "list.h"
 
     #define OBJECT_OPEN  '{'

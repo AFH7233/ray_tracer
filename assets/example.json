@@ -37,8 +37,8 @@
             "material" : {
                 "color" : {
                     "r" : 255,
-                    "g" : 4,
-                    "b" : 0
+                    "g" : 1,
+                    "b" : 255
                 },
                 "emmitance" : 0.0,
                 "probability diffuse" : 1.0,
@@ -48,7 +48,7 @@
         {
             "id" : "light",
             "type" : "sphere",
-            "radius" : 50.0,
+            "radius" : 25.0,
             "center" :  {
                 "x" : 0.0,
                 "y" : 100.0,
@@ -60,7 +60,7 @@
                     "g" : 255,
                     "b" : 255
                 },
-                "emmitance" : 50.0,
+                "emmitance" : 5.0,
                 "probability diffuse" : 1.0,
                 "angle of spread" : 10.0
             } 
