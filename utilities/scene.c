@@ -61,6 +61,25 @@ static scene to_scene(json_object* json, object_array* garbage){
         empty.rays_per_pixel = 10;       
     }
 
+    char* output_path = calloc(MAX_STRING_SIZE, sizeof(char));
+    array_push(garbage, output_path);
+
+    json_object* output = get_json_object(json, OUTPUT_TAG);
+    if(output == NULL || output->type != JSON_OBJECT){
+        fprintf(stderr, "Invalid path, defaulting to result.bmp\n");
+        exit(EXIT_FAILURE);
+    }
+
+    json_object* file = get_json_object(output, FILE_PATH);
+    if(file == NULL || file->type != JSON_VALUE){
+        fprintf(stderr, "Invalid path, defaulting to result.bmp\n");
+        exit(EXIT_FAILURE);
+    }  
+    strncpy(output_path, file->value, MAX_STRING_SIZE); 
+
+    empty.output_path = output_path;
+
+    empty.ambient_color = get_color(get_json_object(json, AMBIENT_COLOR_TAG));
     empty.focus = get_vector_or_hemisphere(get_json_object(json, FOCUS),false);
     empty.camara = get_camera(get_json_object(json, CAMERA));
     empty.objects = get_objects(get_json_object(json, RAYTRACEABLE_OBJECTS), garbage);

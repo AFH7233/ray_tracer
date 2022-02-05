@@ -4,10 +4,8 @@
     "threads" : 10,
     "bounces": 3,
     "rays": 10,
-    "focus" : {
-        "x" : 0.0,
-        "y" : 0.0,
-        "z" : 100.0
+    "output" : {
+        "path": "../out/my_result.bmp"
     },
 
     "camera" : {
@@ -23,6 +21,18 @@
             "z" : -30.0
         }
 
+    },
+
+    "focus" : {
+        "x" : 0.0,
+        "y" : 0.0,
+        "z" : 100.0
+    },
+
+    "ambient color" : {
+        "r" : 255,
+        "g" : 255,
+        "b" : 255
     },
 
     "objects" : [
@@ -92,7 +102,9 @@
                 "angle of spread" : 10.0
             } 
         }
-    ]
+    ],
+
+    "test" : null
 
 }
 

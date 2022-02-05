@@ -55,6 +55,8 @@
     #define HEMISPHERE_TAG "hemisphere"
     #define NORMAL_TAG "normal"
     #define SPREAD_TAG "spread"
+    #define AMBIENT_COLOR_TAG "ambient color"
+    #define OUTPUT_TAG "output"
 
     typedef struct scene scene;
     struct scene
@@ -66,7 +68,9 @@
         size_t threads;
         size_t rays_per_pixel;
         size_t bounces;
+        color_RGB ambient_color;
         list* objects;
+        char* output_path;
     };
     
 

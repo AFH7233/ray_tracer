@@ -16,7 +16,7 @@
     #define SEPARATOR  ','
     #define TAG_DELIMITER  '\"'
     #define DEFINITION_START  ':'
-    #define MAX_STRING_SIZE 100
+    #define MAX_STRING_SIZE 200
     #define MAX_STRING_SIZE_COPY (MAX_STRING_SIZE-1)
     #define MAP_SIZE 499
 

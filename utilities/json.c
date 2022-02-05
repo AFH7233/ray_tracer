@@ -81,7 +81,7 @@ json_object* read_json(char* const file_name){
                         tag[0] = '\0';
                         char open[2];
                         char close[2];
-                        int read = sscanf(&line[index], "%[\"]%[a-zA-Z ]%[\"]", open, tag, close);
+                        int read = sscanf(&line[index], "%[\"]%[^\"\n\r]%[\"]", open, tag, close);
                         if(read < 3){
                             fprintf(stderr, "TAG SEARCH: I can't parse it\n");
                             exit(EXIT_FAILURE);
@@ -129,9 +129,10 @@ json_object* read_json(char* const file_name){
                         close[0] = '\0';
 
                         //int read = sscanf(&line[index], "%%[\"]%[0-9a-zA-Z\\:./ ]%[\"]", open, value, close);
-                        int read = sscanf(&line[index], "%[\"]%[0-9a-zA-Z:./~ ]%[\"]", open, value, close);
+                        int read = sscanf(&line[index], "%[\"]%[^\"\n\r]%[\"]", open, value, close);
 
                         if(read < 3 || strnlen(open, MAX_STRING_SIZE) != 1 || strnlen(close, MAX_STRING_SIZE) != 1 ){
+                            free(value);
                             printf("%s\n", value);
                             fprintf(stderr, "VALUE_SEARCH: I can't parse it\n");
                             exit(EXIT_FAILURE);
@@ -145,10 +146,11 @@ json_object* read_json(char* const file_name){
                             state = SEPARATOR_SEARCH;
                         }
                     } else if(isnumber(line,index)){
-                        char* value = calloc(30,sizeof(char));
+                        char* value = calloc(MAX_STRING_SIZE,sizeof(char));
                         value[0] = '\0';
                         int read = sscanf(&line[index], "%[0-9.eE+-]", value);
                         if(read < 1){
+                            free(value);
                             fprintf(stderr, "VALUE_SEARCH: I can't parse it\n");
                             exit(EXIT_FAILURE);
                         } else {
@@ -158,6 +160,25 @@ json_object* read_json(char* const file_name){
                             stack = push_node(stack, current);
                             index += strnlen(value, MAX_STRING_SIZE) - 1;
                             state = SEPARATOR_SEARCH;
+                        }
+                    } else if ((line[index])== 't' || (line[index])== 'f' || (line[index])== 'n'){
+                        char* value = calloc(MAX_STRING_SIZE,sizeof(char));
+                        sscanf(&line[index], "%[truefasnul]", value);
+                        bool is_valid = strncmp(value, "true", MAX_STRING_SIZE) == 0 ||
+                        strncmp(value, "false", MAX_STRING_SIZE) == 0 ||
+                        strncmp(value, "null", MAX_STRING_SIZE) == 0;
+
+                        if(is_valid){
+                            parse_tree* current = malloc(sizeof(parse_tree));
+                            current->type = VALUE;
+                            current->value = value;
+                            stack = push_node(stack, current);
+                            index += strnlen(value, MAX_STRING_SIZE) - 1;
+                            state = SEPARATOR_SEARCH;
+                        } else {
+                            free(value);
+                            fprintf(stderr, "VALUE_SEARCH: I can't parse it\n");
+                            exit(EXIT_FAILURE);
                         }
                     } else if((line[index]) == OBJECT_OPEN){
                         index--;

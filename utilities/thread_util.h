@@ -21,6 +21,7 @@
         size_t bounces;
         double aspect;
         double distance;
+        color_RGB ambient_color;
         bvh_tree* tree;
         image strip;
         volatile _Atomic( thread_status ) status ;

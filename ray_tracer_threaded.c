@@ -7,16 +7,14 @@
 #include "utilities/logging.h"
 
 /*
-TODO: Custom ambient color
 TODO: rotations and translations for obj
-TODO: custom image path
 TODO: Glass
 */
 #ifndef REGION_SIZE
     #define REGION_SIZE 10
 #endif
 
-color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces);
+color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB ambient_color);
 void* render_thread_pixel(void* thread_data);
 
 int main(int argc, char* argv[]){
@@ -105,6 +103,7 @@ int main(int argc, char* argv[]){
             data[index].width = width;
             data[index].rays_per_pixel = escena.rays_per_pixel;
             data[index].bounces = escena.bounces;
+            data[index].ambient_color = escena.ambient_color;
             data[index].status = IDLE;
             index++;
 
@@ -146,7 +145,7 @@ int main(int argc, char* argv[]){
         } 
         k = (k >= squares_total - 1)? 0 : k+1;
     }
-    write_bmp("resultado_threads.bmp", screen);
+    write_bmp(escena.output_path, screen);
     for(size_t index=0; index < squares_total; index++){
         free_image(data[index].strip);
     }
@@ -178,7 +177,7 @@ void* render_thread_pixel(void* thread_data){
                     new_normal(x, y, data->distance)
                 );
 
-                ray_color = add_color(ray_color, render_pixel(pixel_ray, data->tree, data->bounces));
+                ray_color = add_color(ray_color, render_pixel(pixel_ray, data->tree, data->bounces, data->ambient_color));
             }
 
             
@@ -194,7 +193,7 @@ void* render_thread_pixel(void* thread_data){
     return data;
 }
 
-color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces){
+color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB ambient_color){
 
     collition hitted_object = get_bvh_collition(root, pixel_ray);
     if(hitted_object.is_hit && bounces >= 0){
@@ -208,7 +207,7 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces){
             generated_pixel_ray = diffuse_ray(surface_normal, surface_point);
         }
         
-        color_RGB incoming_color = render_pixel(generated_pixel_ray, root, (bounces-1));
+        color_RGB incoming_color = render_pixel(generated_pixel_ray, root, (bounces-1), ambient_color);
         incoming_color = scale_color(incoming_color, dot(surface_normal, generated_pixel_ray.direction));
 
         color_RGB surface_color = mix_color(hitted_object.material.color, incoming_color);
@@ -221,7 +220,7 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces){
         return emmitance;
     } else {
         //return new_color_RGB( 0.5, 0.7, 1.0);
-       return  new_color_RGB(COLOR_ERROR, COLOR_ERROR, COLOR_ERROR); //new_color_RGB( 0.5, 0.7, 1.0);
+       return  ambient_color; //new_color_RGB(COLOR_ERROR, COLOR_ERROR, COLOR_ERROR); //new_color_RGB( 0.5, 0.7, 1.0);
     } 
 
 }
