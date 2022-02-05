@@ -183,6 +183,7 @@ json_object* read_json(char* const file_name){
                             fprintf(stderr, "Not balanced braces\n");
                             exit(EXIT_FAILURE);
                         }
+
                         if(*inside_what == 'a'){
                             state = VALUE_SEARCH;
                         } else {
@@ -190,7 +191,13 @@ json_object* read_json(char* const file_name){
                         }
 
                     } else if(line[index] == OBJECT_CLOSE ) {
-                        array_pop(&inside_stack);
+                        char* inside_what = array_pop(&inside_stack);
+
+                        if(inside_what == NULL || *inside_what == inside_array){
+                            fprintf(stderr, "Not balanced braces\n");
+                            exit(EXIT_FAILURE);
+                        }
+
                         parse_tree* current = malloc(sizeof(parse_tree));
                         current->type = OBJECT_END;
                         current->value = calloc(2,sizeof(char));
@@ -200,7 +207,13 @@ json_object* read_json(char* const file_name){
                         state = SEPARATOR_SEARCH;                   
                     } 
                 else if(line[index] == ARRAY_CLOSE ) {
-                        array_pop(&inside_stack);
+                        char* inside_what = array_pop(&inside_stack);
+
+                        if(inside_what == NULL || *inside_what == inside_object){
+                            fprintf(stderr, "Not balanced braces\n");
+                            exit(EXIT_FAILURE);
+                        }
+
                         parse_tree* current = malloc(sizeof(parse_tree));
                         current->type = ARRAY_END;
                         current->value = calloc(2,sizeof(char));

@@ -266,7 +266,7 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces){
 
         return brdf;
     } else if(hitted_object.is_hit){
-        color_RGB emmitance = scale_color(hitted_object.material.color, hitted_object.material.emmitance + COLOR_ERROR);
+        color_RGB emmitance = scale_color(hitted_object.material.color, hitted_object.material.emmitance);
         return emmitance;
     } else {
         //return new_color_RGB( 0.5, 0.7, 1.0);

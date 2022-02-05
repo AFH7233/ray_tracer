@@ -119,11 +119,37 @@ static color_RGB get_color(json_object* current){
         fprintf(stderr, "Cannot parse color \n");
         exit(EXIT_FAILURE);
     }
-    color_RGB color = new_color_RGB(1.0, 1.0, 1.0);
+    color_RGB color = {};
 
     color.red = get_double(get_json_object(current, COLOR_R));
+    if(color.red > 255.0){
+        fprintf(stderr, "Limiting to 255 \n");
+        color.red = 255.0;
+    } else if(color.red < 0.0){
+        fprintf(stderr, "No negative colors \n");
+        color.red = COLOR_ERROR;  
+    }
+    color.red = color.red/255.0;
+
     color.green = get_double(get_json_object(current, COLOR_G));
+    if(color.green > 255.0){
+        fprintf(stderr, "Limiting to 255 \n");
+        color.green = 255.0;
+    } else if(color.green < 0.0){
+        fprintf(stderr, "No negative colors \n");
+        color.green = COLOR_ERROR;  
+    }
+    color.green = color.green/255.0;
+
     color.blue = get_double(get_json_object(current, COLOR_B));
+    if(color.blue > 255.0){
+        fprintf(stderr, "Limiting to 255 \n");
+        color.blue = 255.0;
+    } else if(color.blue < 0.0){
+        fprintf(stderr, "No negative colors \n");
+        color.blue = COLOR_ERROR;  
+    }
+    color.blue = color.blue/255.0;
     return color;
 }
 
@@ -140,7 +166,7 @@ static properties get_material(json_object* current){
     };
 
     material.color = get_color(get_json_object(current, COLOR));
-    material.emmitance = get_double(get_json_object(current, MATERIAL_EMMITANCE));
+    material.emmitance = get_double(get_json_object(current, MATERIAL_EMMITANCE)) + COLOR_ERROR;
     material.p_diffract = get_double(get_json_object(current, MATERIAL_P_DIFF));
     material.angle_spread_reflect  = get_double(get_json_object(current, MATERIAL_SPREAD));
 

@@ -60,7 +60,7 @@
                     "g" : 255,
                     "b" : 255
                 },
-                "emmitance" : 5.0,
+                "emmitance" : 10.0,
                 "probability diffuse" : 1.0,
                 "angle of spread" : 10.0
             } 
