@@ -4,7 +4,7 @@ static list_face* triangulate_convex_faces(list_face* head_face);
 static normal* create_vertex_normals(object* triangles, polygon* cloud, size_t vertex_count, size_t face_count, object_array* garbage);
 static void center_obj(vector* arr, size_t length);
 
-obj_container read_obj_file(char* fileName, double scale, properties material, object_array* garbage){
+obj_container read_obj_file(char* fileName, double scale, properties material, matrix transformation, object_array* garbage){
     FILE *file = fopen(fileName, "r");
     if(file == NULL){
     fprintf(stderr, "No pude leer el archivo\n");
@@ -165,6 +165,12 @@ obj_container read_obj_file(char* fileName, double scale, properties material, o
     
     cloud->normals = create_vertex_normals(triangles, cloud, vertex_count, face_count, garbage);
     center_obj(vertices, vertex_count);
+
+    for(size_t i=0; i< vertex_count; i++){
+        cloud->vertices[i] = trasnform(transformation, cloud->vertices[i]);
+        cloud->normals[i] = trasnform(transformation, cloud->normals[i]);
+    } 
+    
     printf("Added normals\n");
     obj_container result = {
         .length = face_count,
@@ -192,10 +198,10 @@ static void center_obj(vector* arr, size_t length){
     }
 
     double c_x = min_x + (max_x - min_x)/2.0;
-    double c_y = min_y + (max_y - min_y)/2.0;
+    //double c_y = min_y + (max_y - min_y)/2.0;
     double c_z = min_z + (max_z - min_z)/2.0;
-    vector center = new_vector(c_x, c_y, c_z);
-
+    vector center = new_vector(c_x, -min_y, c_z);
+    
     for(size_t i=0; i<length; i++){
        arr[i] = sub_vector(arr[i], center);
     } 

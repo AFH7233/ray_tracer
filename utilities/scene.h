@@ -58,6 +58,17 @@
     #define AMBIENT_COLOR_TAG "ambient color"
     #define OUTPUT_TAG "output"
 
+    #define ROTATION_X_TAG "rx"
+    #define ROTATION_Y_TAG "ry"
+    #define ROTATION_Z_TAG "rz"
+
+    #define TRANSLATION_X_TAG "tx"
+    #define TRANSLATION_Y_TAG "ty"
+    #define TRANSLATION_Z_TAG "tz"
+
+    #define TRANSFORMATIONS_TAG "transformations"
+
+
     typedef struct scene scene;
     struct scene
     {

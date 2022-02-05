@@ -6,6 +6,7 @@ static double get_double(json_object* current);
 static double get_limit_double(json_object* current);
 static double get_random_double(json_object* current);
 static vector get_vector(json_object* current, bool is_normal);
+static matrix get_transformaiton_matrix(json_object* current);
 static vector get_vector_or_hemisphere(json_object* current, bool is_normal);
 static color_RGB get_color(json_object* current);
 static camera get_camera(json_object* current);
@@ -80,6 +81,7 @@ static scene to_scene(json_object* json, object_array* garbage){
     empty.output_path = output_path;
 
     empty.ambient_color = get_color(get_json_object(json, AMBIENT_COLOR_TAG));
+
     empty.focus = get_vector_or_hemisphere(get_json_object(json, FOCUS),false);
     empty.camara = get_camera(get_json_object(json, CAMERA));
     empty.objects = get_objects(get_json_object(json, RAYTRACEABLE_OBJECTS), garbage);
@@ -175,6 +177,51 @@ static vector get_vector_or_hemisphere(json_object* current, bool is_normal){
    
 }
 
+static matrix get_transformaiton_matrix(json_object* current){
+    if(current == NULL || current->type != JSON_OBJECT){
+        fprintf(stderr, "Cannot parse transformation \n");
+        exit(EXIT_FAILURE);
+    }
+
+    json_object* rotation_x = get_json_object(current, ROTATION_X_TAG);
+    double rx = 0.0;
+    if(rotation_x != NULL){
+        rx = get_double(rotation_x);
+    } 
+
+    json_object* rotation_y = get_json_object(current, ROTATION_Y_TAG);
+    double ry = 0.0;
+    if(rotation_y != NULL){
+        ry = get_double(rotation_y);
+    } 
+
+    json_object* rotation_z = get_json_object(current, ROTATION_Z_TAG);
+    double rz = 0.0;
+    if(rotation_z != NULL){
+        rz = get_double(rotation_z);
+    } 
+
+    json_object* translation_x = get_json_object(current, TRANSLATION_X_TAG);
+    double tx = 0.0;
+    if(translation_x != NULL){
+        tx = get_double(translation_x);
+    } 
+
+    json_object* translation_y = get_json_object(current, TRANSLATION_Y_TAG);
+    double ty = 0.0;
+    if(translation_y != NULL){
+        ty = get_double(translation_y);
+    } 
+
+    json_object* translation_z = get_json_object(current, TRANSLATION_Z_TAG);
+    double tz = 0.0;
+    if(translation_z != NULL){
+        tz = get_double(translation_z);
+    } 
+
+    return get_transformation(rx, ry, rz, tx, ty, tz);
+}
+
 static vector get_vector(json_object* current, bool is_normal){
     if(current == NULL || current->type != JSON_OBJECT){
         fprintf(stderr, "Cannot parse vector \n");
@@ -208,7 +255,7 @@ static color_RGB get_color(json_object* current){
     color_RGB color = {};
 
     color.red = get_double(get_json_object(current, COLOR_R));
-    if(color.red > (255.0 - COLOR_ERROR)){
+    if(color.red > (255.0)){
         fprintf(stderr, "Limiting to 255 \n");
         color.red = 255.0 - (255.0*COLOR_ERROR);
     } else if(color.red < COLOR_ERROR){
@@ -218,7 +265,7 @@ static color_RGB get_color(json_object* current){
     color.red = color.red/255.0;
 
     color.green = get_double(get_json_object(current, COLOR_G));
-    if(color.green >  (255.0 - COLOR_ERROR)){
+    if(color.green >  (255.0 )){
         fprintf(stderr, "Limiting to 255 \n");
         color.green = 255.0 - (255.0*COLOR_ERROR);
     } else if(color.green < COLOR_ERROR){
@@ -228,7 +275,7 @@ static color_RGB get_color(json_object* current){
     color.green = color.green/254.0;
 
     color.blue = get_double(get_json_object(current, COLOR_B));
-    if(color.blue >  (255.0 - COLOR_ERROR)){
+    if(color.blue >  (255.0 )){
         fprintf(stderr, "Limiting to 255 \n");
         color.blue = 255.0 - (255.0*COLOR_ERROR);
     } else if(color.blue <COLOR_ERROR){
@@ -382,12 +429,23 @@ static obj_container get_obj(json_object* current, object_array* garbage){
         exit(EXIT_FAILURE);
     }
 
+
     json_object* path = get_json_object(current,FILE_PATH);
     double scale = get_double(get_json_object(current, SCALE));
     properties polygon_material = get_material(get_json_object(current, MATERIAL));
+
+    json_object* transformations = get_json_object(current, TRANSFORMATIONS_TAG);
+    matrix transformation = identity_matrix;
+    if(transformations != NULL && transformations->type == JSON_ARRAY){
+        for(size_t i=0; i<transformations->length; i++){
+            matrix element = get_transformaiton_matrix(get_json_element(transformations, i));
+            transformation = mul_matrix(element, transformation);
+        }
+        
+    }
     obj_container container = {};
     if(path->type == JSON_VALUE){
-        container = read_obj_file(path->value, scale, polygon_material, garbage);
+        container = read_obj_file(path->value, scale, polygon_material, transformation, garbage);
     } else {
         fprintf(stderr, "Cannot parse path \n");
         exit(EXIT_FAILURE);

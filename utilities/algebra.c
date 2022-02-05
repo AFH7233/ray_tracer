@@ -107,3 +107,40 @@ matrix mul_matrix(matrix a, matrix b){
     }
     return c;
 }
+
+matrix get_transformation(double rx, double ry, double rz, double tx, double ty, double tz){
+    double rx_d = M_PI*rx/180.0;
+    double ry_d = M_PI*ry/180.0;
+    double rz_d = M_PI*rz/180.0;
+    
+    matrix rotation_z = new_matrix(
+        cos(rz_d), -sin(rz_d),  0.0, 0.0,
+        sin(rz_d), cos(rz_d),  0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0,
+        0.0, 0.0, 0.0, 1.0
+    );
+
+    matrix rotation_y = new_matrix(
+        cos(ry_d), 0.0, sin(ry_d), 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        -sin(ry_d), 0.0, cos(ry_d), 0.0,
+        0.0, 0.0, 0.0, 1.0     
+    );
+
+    matrix rotation_x = new_matrix(
+        1.0, 0.0, 0.0, 0.0,
+        0.0, cos(rx_d), sin(rx_d), 0.0,
+        0.0, -sin(rx_d), cos(rx_d), 0.0,
+        0.0, 0.0, 0.0, 1.0
+    );
+
+    matrix translacion = new_matrix(
+        1.0, 0.0, 0.0, tx,
+        0.0, 1.0, 0.0, ty,
+        0.0, 0.0, 1.0, tz,
+        0.0, 0.0, 0.0, 1.0
+    );
+
+    matrix rotation = mul_matrix (translacion, mul_matrix(rotation_z, mul_matrix(rotation_y, rotation_x)));
+    return rotation;
+}

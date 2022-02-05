@@ -9,7 +9,7 @@
     },
 
     "camera" : {
-        "fov" : 75 ,
+        "fov" : 45 ,
         "up" : {
             "x" : 0.0,
             "y" : 1.0,
@@ -17,8 +17,8 @@
         },
         "position" : {
             "x" : 0.0,
-            "y" : 0.0,
-            "z" : -30.0
+            "y" : 15.0,
+            "z" : -60.0
         }
 
     },
@@ -30,9 +30,9 @@
     },
 
     "ambient color" : {
-        "r" : 255,
-        "g" : 255,
-        "b" : 255
+        "r" : 0,
+        "g" : 0,
+        "b" : 0
     },
 
     "objects" : [
@@ -49,7 +49,17 @@
                 "emmitance" : 0.0,
                 "probability diffuse" : 0.3,
                 "angle of spread" : 5.0
-            } 
+            },
+            "transformations" : [
+                { 
+                    "rx": 0.0,
+                    "ry": 180.0,
+                    "rz": 0.0,
+                    "tx": 0.0,
+                    "ty": 0.0,
+                    "tz": 0.0
+                }
+            ]
         },
         {
             "type" : "sphere",
@@ -57,7 +67,7 @@
             "radius" : {"min" :1.0, "max" : 3.0},
             "center" :  {
                 "hemisphere" : {
-                    "radius": 15.0,
+                    "radius": 20.0,
                     "spread" : 240.0,
                     "normal" :  {                
                         "x" : 0.0,
