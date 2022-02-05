@@ -6,18 +6,12 @@
 #include "utilities/definitions.h"
 #include "utilities/logging.h"
 
-#ifndef NUM_RAYS
-    #define NUM_RAYS 40000
-#endif
-
-#ifndef NUM_BOUNCES
-    #define NUM_BOUNCES 3
-#endif
-
-#ifndef NUM_THREADS
-    #define NUM_THREADS 10
-#endif
-
+/*
+TODO: Custom ambient color
+TODO: rotations and translations for obj
+TODO: custom image path
+TODO: Glass
+*/
 #ifndef REGION_SIZE
     #define REGION_SIZE 10
 #endif
@@ -58,49 +52,6 @@ int main(int argc, char* argv[]){
 
         current = current->next;
     }
-
-
-    /*obj_container container = read_obj_file("teapot.obj", 7.0, material);
-
-    for(size_t i=0; i<container.length; i++){
-        transform_object(look_at, &container.triangles[i]);
-        add_object(tree, &container.triangles[i]);
-    }
-    
-    normal axis_y = new_normal(0.0,0.1,0.0);
-    for(size_t i=0; i< 20; i++){
-        normal position = random_sphere_direction(axis_y, 200);
-        position.w = 1.0;
-        position = multiply(position, 25.0);
-
-        sphere* sphere_geometry = malloc(sizeof(sphere));
-        head = add_node(head, sphere_geometry);
-        fill_allocated_sphere(
-            sphere_geometry,
-            RAND(1.0,2.0), 
-            position
-        );
-
-        color_RGB sphere_color = new_color_RGB(RAND(0.1,1.0), RAND(0.1,1.0), RAND(0.1,1.0));
-        
-        properties material = {
-            .color = sphere_color,
-            .emmitance = COLOR_ERROR,
-            .p_diffract = 1.0,
-            .angle_spread_reflect = 20.0
-        };
-
-        object* bola = malloc(sizeof(object));
-        head = add_node(head, bola);
-        fill_allocated_sphere_object(
-            bola,
-            sphere_geometry,
-            material
-        );
-
-        transform_object(look_at, bola);
-        add_object(tree, bola);
-    }*/
 
     printf("Preparing bvh tree\n");
     distribute_bvh(tree);

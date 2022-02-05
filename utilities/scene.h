@@ -46,11 +46,15 @@
     #define OBJ "OBJ"
 
     #define RAYTRACEABLE_OBJECTS  "objects"
+    #define RAYTRACEABLE_REPEAT "repeat"
     #define FILE_PATH "path"
 
     #define OBJECT_REPETITIONS "repetitions"
     #define MIN_TAG "min"
     #define MAX_TAG "max"
+    #define HEMISPHERE_TAG "hemisphere"
+    #define NORMAL_TAG "normal"
+    #define SPREAD_TAG "spread"
 
     typedef struct scene scene;
     struct scene

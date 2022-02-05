@@ -6,6 +6,7 @@ static double get_double(json_object* current);
 static double get_limit_double(json_object* current);
 static double get_random_double(json_object* current);
 static vector get_vector(json_object* current, bool is_normal);
+static vector get_vector_or_hemisphere(json_object* current, bool is_normal);
 static color_RGB get_color(json_object* current);
 static camera get_camera(json_object* current);
 static properties get_material(json_object* current);
@@ -19,7 +20,6 @@ scene read_scene(char* const file_name, object_array* garbage){
     free_json(json);
     return escnea;
 }
-
 
 static scene to_scene(json_object* json, object_array* garbage){
     scene empty = {
@@ -61,7 +61,7 @@ static scene to_scene(json_object* json, object_array* garbage){
         empty.rays_per_pixel = 10;       
     }
 
-    empty.focus = get_vector(get_json_object(json, FOCUS),false);
+    empty.focus = get_vector_or_hemisphere(get_json_object(json, FOCUS),false);
     empty.camara = get_camera(get_json_object(json, CAMERA));
     empty.objects = get_objects(get_json_object(json, RAYTRACEABLE_OBJECTS), garbage);
     return empty;
@@ -120,6 +120,42 @@ static double get_random_double(json_object* current){
     }
 }
 
+static vector get_vector_or_hemisphere(json_object* current, bool is_normal){
+    if(current == NULL || current->type != JSON_OBJECT){
+        fprintf(stderr, "Cannot parse vector \n");
+        exit(EXIT_FAILURE);
+    }
+    json_object* hemisphere = get_json_object(current, HEMISPHERE_TAG);
+    if(hemisphere != NULL){
+        normal surface_normal = get_vector(get_json_object(hemisphere, NORMAL_TAG), true);
+        vector center = get_vector(get_json_object(hemisphere, CENTER), false);
+        double spread = get_double(get_json_object(hemisphere, SPREAD_TAG));
+        if(spread < 0.0){
+            fprintf(stderr, "Spread must be positive, defaulting to 0.0\n");
+            spread = 0.0;
+        }
+        double radius = get_double(get_json_object(hemisphere, RADIUS));
+        if(radius < 0.0){
+            fprintf(stderr, "Radius must be positive, defaulting to 1.0\n");
+            radius = 1.0;
+        }
+        vector point = random_sphere_direction(surface_normal, spread);
+        point.w = 1.0;
+        point = multiply(point, radius);
+        point = add_vector(point, center);
+        if(is_normal){
+            return to_normal(point);
+        } else {
+            return point;
+        }        
+
+    } else {
+        return get_vector(current, is_normal);
+    }
+
+   
+}
+
 static vector get_vector(json_object* current, bool is_normal){
     if(current == NULL || current->type != JSON_OBJECT){
         fprintf(stderr, "Cannot parse vector \n");
@@ -153,7 +189,7 @@ static color_RGB get_color(json_object* current){
     color_RGB color = {};
 
     color.red = get_double(get_json_object(current, COLOR_R));
-    if(color.red > 255.0){
+    if(color.red > (255.0 - COLOR_ERROR)){
         fprintf(stderr, "Limiting to 255 \n");
         color.red = 255.0 - (255.0*COLOR_ERROR);
     } else if(color.red < COLOR_ERROR){
@@ -163,17 +199,17 @@ static color_RGB get_color(json_object* current){
     color.red = color.red/255.0;
 
     color.green = get_double(get_json_object(current, COLOR_G));
-    if(color.green > 255.0){
+    if(color.green >  (255.0 - COLOR_ERROR)){
         fprintf(stderr, "Limiting to 255 \n");
         color.green = 255.0 - (255.0*COLOR_ERROR);
     } else if(color.green < COLOR_ERROR){
         fprintf(stderr, "No negative colors \n");
         color.green = COLOR_ERROR;  
     }
-    color.green = color.green/255.0;
+    color.green = color.green/254.0;
 
     color.blue = get_double(get_json_object(current, COLOR_B));
-    if(color.blue > 255.0){
+    if(color.blue >  (255.0 - COLOR_ERROR)){
         fprintf(stderr, "Limiting to 255 \n");
         color.blue = 255.0 - (255.0*COLOR_ERROR);
     } else if(color.blue <COLOR_ERROR){
@@ -223,8 +259,8 @@ static camera get_camera(json_object* current){
     camera camara = {};
 
     camara.fov = get_double(get_json_object(current, CAMERA_FOV));
-    camara.position = get_vector(get_json_object(current, CAMERA_POSITION), false);  
-    camara.up = get_vector(get_json_object(current, CAMERA_UP), true);  
+    camara.position = get_vector_or_hemisphere(get_json_object(current, CAMERA_POSITION), false);  
+    camara.up = get_vector_or_hemisphere(get_json_object(current, CAMERA_UP), true);  
 
 
     if(camara.fov < 0.0){
@@ -261,8 +297,19 @@ static list* get_objects(json_object* current, object_array* garbage){
         }
 
         if(strncmp(tag->value, SPHERE, MAX_STRING_SIZE) == 0){
-            object* sphere_object = get_sphere(object_raytraceable, garbage);
-            objects = add_node(objects, sphere_object);
+           json_object* repeat =  get_json_object(object_raytraceable, RAYTRACEABLE_REPEAT);
+           if(repeat != NULL){
+                size_t repetitions = get_integer(repeat);
+                for(size_t i=0; i<repetitions; i++){
+                    object* sphere_object = get_sphere(object_raytraceable, garbage);
+                    objects = add_node(objects, sphere_object);
+                }
+
+           } else {
+                object* sphere_object = get_sphere(object_raytraceable, garbage);
+                objects = add_node(objects, sphere_object);
+           }
+
         } else if(strncmp(tag->value, OBJ, MAX_STRING_SIZE) == 0){
             obj_container container = get_obj(object_raytraceable, garbage);
             for(size_t i=0; i<container.length; i++){
@@ -292,7 +339,7 @@ static object* get_sphere(json_object* current, object_array* garbage){
         sphere_geometry->radio= 2.0;
     }
 
-    sphere_geometry->center = get_vector(get_json_object(current, CENTER), false);
+    sphere_geometry->center = get_vector_or_hemisphere(get_json_object(current, CENTER), false);
 
     properties sphere_material = get_material(get_json_object(current, MATERIAL));
 
