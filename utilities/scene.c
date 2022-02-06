@@ -13,6 +13,7 @@ static camera get_camera(json_object* current);
 static properties get_material(json_object* current);
 static list* get_objects(json_object* current, object_array* garbage);
 static object* get_sphere(json_object* current, object_array* garbage);
+static object* get_plane(json_object* current, object_array* garbage);
 static obj_container get_obj(json_object* current, object_array* garbage);
 
 scene read_scene(char* const file_name, object_array* garbage){
@@ -376,6 +377,9 @@ static list* get_objects(json_object* current, object_array* garbage){
                 objects = add_node(objects, sphere_object);
            }
 
+        } else if(strncmp(tag->value, PLANE_TAG, MAX_STRING_SIZE) == 0){
+            object* plane_object = get_plane(object_raytraceable, garbage);
+            objects = add_node(objects, plane_object);
         } else if(strncmp(tag->value, OBJ, MAX_STRING_SIZE) == 0){
             obj_container container = get_obj(object_raytraceable, garbage);
             for(size_t i=0; i<container.length; i++){
@@ -422,6 +426,36 @@ static object* get_sphere(json_object* current, object_array* garbage){
     return sphere_object;
 }
 
+static object* get_plane(json_object* current, object_array* garbage){
+    if(current == NULL || current->type != JSON_OBJECT){
+        fprintf(stderr, "Cannot parse objects \n");
+        exit(EXIT_FAILURE);
+    }
+    plane* plane_geometry = malloc(sizeof(plane));
+    array_push(garbage, plane_geometry);
+    plane_geometry->radio = get_double(get_json_object(current, RADIUS));
+    if(plane_geometry->radio < 0.0){
+        fprintf(stdout, "Ilgeal radius setting up default \n");
+        plane_geometry->radio= 2.0;
+    }
+
+    plane_geometry->center = get_vector_or_hemisphere(get_json_object(current, CENTER), false);
+    plane_geometry->surface_normal = get_vector_or_hemisphere(get_json_object(current, NORMAL_TAG), true);
+
+    properties plane_material = get_material(get_json_object(current, MATERIAL));
+
+    object* plane_object = malloc(sizeof(object));
+    array_push(garbage, plane_object);
+    plane_object->geometry = plane_geometry; 
+    plane_object->material = plane_material; 
+    plane_object->get_geometry_collition = (geometry_collition (*) (void*, ray)) get_plane_collition; 
+    plane_object->transform_geometry = (void (*) (matrix, void*))  transform_plane_with_mutation; 
+    plane_object->get_bounding_box = (box (*) (void*)) get_plane_bounding_box; 
+
+    plane_object->bounding_box  = get_plane_bounding_box(plane_geometry); 
+    plane_object->surface_area = get_plane_area(plane_geometry); 
+    return plane_object;
+}
 
 static obj_container get_obj(json_object* current, object_array* garbage){
     if(current == NULL || current->type != JSON_OBJECT){

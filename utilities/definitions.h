@@ -8,6 +8,7 @@
     #include "geometric/ray.h"
     #include "geometric/polygon.h"
     #include "geometric/sphere.h"
+    #include "geometric/plane.h"
 
     #include "object.h"
     #include "image.h"

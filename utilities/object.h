@@ -34,7 +34,7 @@
     {
         bool is_hit;
         double distance;
-        normal normal;
+        normal surface_normal;
         vector point;
         properties material;
     };

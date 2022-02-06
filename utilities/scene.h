@@ -2,6 +2,7 @@
     #define _SCENE_
     #include "json.h"
     #include "geometric/sphere.h"
+    #include "geometric/plane.h"
     #include "geometric/algebra.h"
     #include "camera.h"
     #include "object.h"
@@ -58,6 +59,7 @@
     #define SPREAD_TAG "spread"
     #define AMBIENT_COLOR_TAG "ambient color"
     #define OUTPUT_TAG "output"
+    #define PLANE_TAG "plane"
 
     #define ROTATION_X_TAG "rx"
     #define ROTATION_Y_TAG "ry"

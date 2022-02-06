@@ -5,7 +5,7 @@ collition get_collition(object *restrict object_3D, ray pixel_ray){
     collition result = {
         .is_hit = collision_data.is_hit,
         .distance = collision_data.distance,
-        .normal = collision_data.normal,
+        .surface_normal = collision_data.surface_normal,
         .point = collision_data.point,
         .material = object_3D->material
     };

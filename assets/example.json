@@ -30,9 +30,9 @@
     },
 
     "ambient color" : {
-        "r" : 0,
-        "g" : 0,
-        "b" : 0
+        "r" : 127,
+        "g" : 179,
+        "b" : 255
     },
 
     "objects" : [
@@ -64,15 +64,15 @@
         {
             "type" : "sphere",
             "repeat" : 20,
-            "radius" : {"min" :1.0, "max" : 3.0},
+            "radius" : {"min" :1.0, "max" : 2.0},
             "center" :  {
                 "hemisphere" : {
-                    "radius": 20.0,
-                    "spread" : 240.0,
+                    "radius": 25.0,
+                    "spread" : 180.0,
                     "normal" :  {                
                         "x" : 0.0,
-                        "y" : 0.0,
-                        "z" : 1.0
+                        "y" : 1.0,
+                        "z" : 0.0
                     },
                     "center" : {                
                         "x" : 0.0,
@@ -93,13 +93,37 @@
             } 
         },
         {
+            "type" : "plane",
+            "radius" : 500.0,
+            "center" :  {
+                "x" : 0.0,
+                "y" : 0.0,
+                "z" : 0.0
+            },
+            "normal" :  {
+                "x" : 0.0,
+                "y" : 1.0,
+                "z" : 0.0
+            },
+            "material" : {
+                "color" : {
+                    "r" : 25,
+                    "g" : 25,
+                    "b" : 25
+                },
+                "emmitance" : 0.0,
+                "probability diffuse" : 1.0,
+                "angle of spread" : 10.0
+            } 
+        },
+        {
             "id" : "light",
             "type" : "sphere",
-            "radius" : 25.0,
+            "radius" : 20.0,
             "center" :  {
                 "x" : 0.0,
                 "y" : 100.0,
-                "z" : 0.0
+                "z" : 100.0
             },
             "material" : {
                 "color" : {
@@ -107,7 +131,7 @@
                     "g" : 255,
                     "b" : 255
                 },
-                "emmitance" : 10.0,
+                "emmitance" : 5.0,
                 "probability diffuse" : 1.0,
                 "angle of spread" : 10.0
             } 

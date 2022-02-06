@@ -62,7 +62,7 @@ geometry_collition get_face_collition(face *restrict surface, ray pixel_ray){
 
     vector surface_normal = divide(add_vector(add_vector(multiply(normal_a, c0), multiply(normal_b, c1)), multiply(normal_c, c2)), areaTotal);
     surface_normal = to_normal(surface_normal);
-    result.normal = surface_normal;
+    result.surface_normal = surface_normal;
     
     return result;
 }
