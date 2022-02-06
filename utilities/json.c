@@ -139,7 +139,7 @@ json_object* read_json(char* const file_name){
                         } else {
                         
                             parse_tree* current = malloc(sizeof(parse_tree));
-                            current->type = VALUE;
+                            current->type = VALUE_STRING;
                             current->value = value;
                             stack = push_node(stack, current);
                             index += strnlen(value, MAX_STRING_SIZE) + 2 - 1;
@@ -155,22 +155,21 @@ json_object* read_json(char* const file_name){
                             exit(EXIT_FAILURE);
                         } else {
                             parse_tree* current = malloc(sizeof(parse_tree));
-                            current->type = VALUE;
+                            current->type = VALUE_NUMBER;
                             current->value = value;
                             stack = push_node(stack, current);
                             index += strnlen(value, MAX_STRING_SIZE) - 1;
                             state = SEPARATOR_SEARCH;
                         }
-                    } else if ((line[index])== 't' || (line[index])== 'f' || (line[index])== 'n'){
+                    } else if ((line[index])== 't' || (line[index])== 'f' ){
                         char* value = calloc(MAX_STRING_SIZE,sizeof(char));
-                        sscanf(&line[index], "%[truefasnul]", value);
+                        sscanf(&line[index], "%[truefals]", value);
                         bool is_valid = strncmp(value, "true", MAX_STRING_SIZE) == 0 ||
-                        strncmp(value, "false", MAX_STRING_SIZE) == 0 ||
-                        strncmp(value, "null", MAX_STRING_SIZE) == 0;
+                        strncmp(value, "false", MAX_STRING_SIZE) == 0;
 
                         if(is_valid){
                             parse_tree* current = malloc(sizeof(parse_tree));
-                            current->type = VALUE;
+                            current->type = VALUE_BOOLEAN;
                             current->value = value;
                             stack = push_node(stack, current);
                             index += strnlen(value, MAX_STRING_SIZE) - 1;
@@ -180,7 +179,25 @@ json_object* read_json(char* const file_name){
                             fprintf(stderr, "VALUE_SEARCH: I can't parse it\n");
                             exit(EXIT_FAILURE);
                         }
-                    } else if((line[index]) == OBJECT_OPEN){
+                    } else if(line[index]== 'n'){
+                        char* value = calloc(MAX_STRING_SIZE,sizeof(char));
+                        sscanf(&line[index], "%[nul]", value);
+                        bool is_valid = strncmp(value, "null", MAX_STRING_SIZE) == 0;
+
+                        if(is_valid){
+                            parse_tree* current = malloc(sizeof(parse_tree));
+                            current->type = VALUE_NULL;
+                            current->value = value;
+                            stack = push_node(stack, current);
+                            index += strnlen(value, MAX_STRING_SIZE) - 1;
+                            state = SEPARATOR_SEARCH;
+                        } else {
+                            free(value);
+                            fprintf(stderr, "VALUE_SEARCH: I can't parse it\n");
+                            exit(EXIT_FAILURE);
+                        }
+                    } 
+                    else if((line[index]) == OBJECT_OPEN){
                         index--;
                         state = JSON_SEARCH;
                     }  else if((line[index]) == ARRAY_OPEN){
@@ -267,7 +284,7 @@ json_object* read_json(char* const file_name){
     while(current != NULL){
         if(current->value != NULL){
             parse_tree* node = (parse_tree*) current->value;
-            if((node->type == TAG || node->type == VALUE) && node->value != NULL){
+            if((node->type == TAG ||  node->type == VALUE_STRING ) && node->value != NULL){
                 free(node->value);
                 node->value = NULL;
             }
@@ -310,14 +327,31 @@ json_object* get_json_element(json_object* root, size_t index){
 
 
 void free_json(json_object* root){
-   
+    
+    if(root == NULL){
+        return;
+    }
+
     if(root->type == JSON_OBJECT || root->type == JSON_ARRAY || root->type == JSON_COLLISION){
         for(size_t i=0; i<root->length; i++){
-            free(root->map[i]);
+            free_json(root->map[i]);
             root->map[i]=NULL;
         }
+        if(root->tag != NULL){
+            free(root->tag);
+        }
+
         free(root);
-    } else if(root->type == JSON_VALUE){
+    } else if(root->type == JSON_BOOLEAN || root->type == JSON_NUMBER || root->type == JSON_NULL  ){
+        if(root->tag != NULL){
+            free(root->tag);
+        }
+        free(root);
+    } else if(root->type == JSON_STRING) {
+        free(root->value.string);
+        if(root->tag != NULL){
+            free(root->tag);
+        }
         free(root);
     }
 }
@@ -432,6 +466,7 @@ static bool put(json_object** map, char* key, json_object* value){
             collision->cap = 10;
             collision->length = 2;
             collision->map = calloc(10, sizeof(json_object*));
+            collision->tag = NULL;
             json_object* temp = map[index];
             collision->map[0] = temp;
             collision->map[1] = value;
@@ -491,17 +526,19 @@ static json_object* to_json_object(list* head){
             if(node->type == OBJECT_BEGIN){
                 root = malloc(sizeof(json_object));
                 root->type = JSON_OBJECT;
+                root->tag = NULL;
                 current->is_visited = true;
                 root->cap = MAP_SIZE;
                 root->length = MAP_SIZE;
                 root->map = calloc(MAP_SIZE, sizeof(json_object*));
             } else if (node->type == TAG){
                 json_object* object = malloc(sizeof(json_object));
-                strncpy(object->tag, node->value, MAX_STRING_SIZE_COPY);
+                object->tag = calloc(strnlen(node->value, MAX_STRING_SIZE)+1, sizeof(char));
+                strncpy(object->tag, node->value, strnlen(node->value, MAX_STRING_SIZE));                 
                 current->is_visited = true;
                 current = current->next;
                 bool is_set = set_json_value(object, current);
- 
+
                 if(is_set){
                     put(root->map, object->tag, object);
                 } else {
@@ -536,10 +573,16 @@ static json_object* to_json_array(list* head){
                 current->is_visited = true;
                 root->cap = 10;
                 root->length = 0;
+                root->tag = NULL;
                 root->map = calloc(10, sizeof(json_object*));
-            } else if (node->type == VALUE || node->type == ARRAY_BEGIN || node->type == OBJECT_BEGIN){
+            } else if (node->type == VALUE_BOOLEAN || 
+             node->type == VALUE_NULL || 
+             node->type == VALUE_STRING || 
+             node->type == VALUE_NUMBER|| 
+             node->type == ARRAY_BEGIN || 
+             node->type == OBJECT_BEGIN){
                 json_object* object = malloc(sizeof(json_object));
-                strncpy(object->tag, node->value, MAX_STRING_SIZE_COPY);
+                object->tag = NULL;
                 bool is_set = set_json_value(object, current);
                 if(is_set){
                     if(root->length < root->cap){
@@ -580,10 +623,26 @@ static json_object* to_json_array(list* head){
 static bool set_json_value(json_object* object, list* current){
     if(current != NULL && current->value != NULL){
         parse_tree* node = (parse_tree*) current->value;
-        if(node->type == VALUE){
+        if(node->type == VALUE_STRING){
             current->is_visited = true;
-            object->type = JSON_VALUE;
-            strncpy(object->value, node->value, MAX_STRING_SIZE_COPY);
+            object->type = JSON_STRING;
+            object->value.string = calloc(strnlen(node->value, MAX_STRING_SIZE)+1, sizeof(char));
+            strncpy(object->value.string, node->value, strnlen(node->value, MAX_STRING_SIZE));
+            return true;
+        } else if(node->type == VALUE_NUMBER){
+            current->is_visited = true;
+            object->type = JSON_NUMBER;
+            object->value.number = atof(node->value);
+            return true;
+        } else if(node->type == VALUE_BOOLEAN){
+            current->is_visited = true;
+            object->type = JSON_BOOLEAN;
+            object->value.boolean = strncmp(node->value, "true", MAX_STRING_SIZE) == 0;
+            return true;
+        } else if(node->type == VALUE_NULL){
+            current->is_visited = true;
+            object->type = JSON_NULL;
+            object->value.string = NULL;
             return true;
         } else if(node->type == OBJECT_BEGIN) {
             json_object* root = to_json_object(current);

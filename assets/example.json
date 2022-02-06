@@ -47,8 +47,8 @@
                     "b" : 51
                 },
                 "emmitance" : 0.0,
-                "probability diffuse" : 0.3,
-                "angle of spread" : 5.0
+                "probability diffuse" : 0.1,
+                "angle of spread" : 0.0
             },
             "transformations" : [
                 { 

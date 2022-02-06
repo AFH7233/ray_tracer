@@ -22,10 +22,10 @@
 
 
     typedef enum json_type json_type;
-    enum json_type {TAG, OBJECT_BEGIN, OBJECT_END, VALUE, OBJECT, ARRAY_BEGIN, ARRAY_END};
+    enum json_type {TAG, OBJECT_BEGIN, OBJECT_END, VALUE_BOOLEAN, VALUE_STRING, VALUE_NULL, VALUE_NUMBER, OBJECT, ARRAY_BEGIN, ARRAY_END};
 
     typedef enum value_type value_type;
-    enum value_type {JSON_VALUE, JSON_ARRAY, JSON_OBJECT, JSON_COLLISION};
+    enum value_type {JSON_NUMBER, JSON_ARRAY, JSON_OBJECT, JSON_COLLISION, JSON_STRING, JSON_BOOLEAN, JSON_NULL};
 
     typedef enum parse_state parse_state;
     enum parse_state {JSON_SEARCH, TAG_SEARCH, VALUE_SEPARATOR_SEARCH, VALUE_SEARCH, SEPARATOR_SEARCH, ARRAY_SEARCH};
@@ -40,19 +40,19 @@
     typedef union json_value json_value;
     union json_value
     {
-        char string[MAX_STRING_SIZE];
-        double floating;
-        int integer;
+        char* string;
+        double number;
+        bool boolean;
     };
 
     typedef struct json_object json_object;
     struct json_object
     {
         value_type type;
-        char tag[MAX_STRING_SIZE];
+        char* tag;
         union 
         {
-            char value[MAX_STRING_SIZE];
+            json_value value;
             struct {
                 size_t length;
                 size_t cap;

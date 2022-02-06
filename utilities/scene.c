@@ -73,11 +73,11 @@ static scene to_scene(json_object* json, object_array* garbage){
     }
 
     json_object* file = get_json_object(output, FILE_PATH);
-    if(file == NULL || file->type != JSON_VALUE){
+    if(file == NULL || file->type != JSON_STRING){
         fprintf(stderr, "Invalid path, defaulting to result.bmp\n");
         exit(EXIT_FAILURE);
     }  
-    strncpy(output_path, file->value, MAX_STRING_SIZE); 
+    strncpy(output_path, file->value.string, MAX_STRING_SIZE); 
 
     empty.output_path = output_path;
 
@@ -90,8 +90,8 @@ static scene to_scene(json_object* json, object_array* garbage){
 }
 
 static size_t get_integer(json_object* current){
-    if(current != NULL && current->type == JSON_VALUE){
-        int real_number = atoi(current->value);
+    if(current != NULL && current->type == JSON_NUMBER){
+        int real_number = (int) current->value.number;
         if(real_number < 0){
             fprintf(stderr, "Invalid number for the ray tracer\n");
             exit(EXIT_FAILURE);        
@@ -105,8 +105,8 @@ static size_t get_integer(json_object* current){
 }
 
 static double get_double(json_object* current){
-    if(current != NULL && current->type == JSON_VALUE){
-        double real_number = atof(current->value);
+    if(current != NULL && current->type == JSON_NUMBER){
+        double real_number = current->value.number;
         return real_number;
     } else if(current->type == JSON_OBJECT) {
         return get_random_double(current);
@@ -118,8 +118,8 @@ static double get_double(json_object* current){
 
 //To avoid recursion with double
 static double get_limit_double(json_object* current){
-    if(current != NULL && current->type == JSON_VALUE){
-        double real_number = atof(current->value);
+    if(current != NULL && current->type == JSON_NUMBER){
+        double real_number =  current->value.number;
         return real_number;
     }  else {
         fprintf(stderr, "Cannot parse double \n");
@@ -358,12 +358,12 @@ static list* get_objects(json_object* current, object_array* garbage){
         }
 
         json_object* tag = get_json_object(object_raytraceable, RAYTRACEABLE_TYPE);
-        if(tag == NULL || tag->type != JSON_VALUE){
+        if(tag == NULL || tag->type != JSON_STRING){
             fprintf(stderr, "Invalid tag object \n");
             exit(EXIT_FAILURE);
         }
 
-        if(strncmp(tag->value, SPHERE, MAX_STRING_SIZE) == 0){
+        if(strncmp(tag->value.string, SPHERE, MAX_STRING_SIZE) == 0){
            json_object* repeat =  get_json_object(object_raytraceable, RAYTRACEABLE_REPEAT);
            if(repeat != NULL){
                 size_t repetitions = get_integer(repeat);
@@ -377,10 +377,10 @@ static list* get_objects(json_object* current, object_array* garbage){
                 objects = add_node(objects, sphere_object);
            }
 
-        } else if(strncmp(tag->value, PLANE_TAG, MAX_STRING_SIZE) == 0){
+        } else if(strncmp(tag->value.string, PLANE_TAG, MAX_STRING_SIZE) == 0){
             object* plane_object = get_plane(object_raytraceable, garbage);
             objects = add_node(objects, plane_object);
-        } else if(strncmp(tag->value, OBJ, MAX_STRING_SIZE) == 0){
+        } else if(strncmp(tag->value.string, OBJ, MAX_STRING_SIZE) == 0){
             obj_container container = get_obj(object_raytraceable, garbage);
             for(size_t i=0; i<container.length; i++){
                 object* triangle = malloc(sizeof(object));
@@ -478,8 +478,8 @@ static obj_container get_obj(json_object* current, object_array* garbage){
         
     }
     obj_container container = {};
-    if(path->type == JSON_VALUE){
-        container = read_obj_file(path->value, scale, polygon_material, transformation, garbage);
+    if(path->type == JSON_STRING){
+        container = read_obj_file(path->value.string, scale, polygon_material, transformation, garbage);
     } else {
         fprintf(stderr, "Cannot parse path \n");
         exit(EXIT_FAILURE);
