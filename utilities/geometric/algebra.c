@@ -82,6 +82,7 @@ normal random_sphere_direction(normal direction, double cone_angle_degree) {
  
 
   double z = RAND(cos(spread * M_PI), 1.0);
+  z = z > (1.0-ERROR)? 1.0 : z;
   double r = sqrt(1.0 - z * z); 
   double theta = RAND(-M_PI, M_PI);
   double x = r * cos(theta);
