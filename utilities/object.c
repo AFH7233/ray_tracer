@@ -7,7 +7,8 @@ collition get_collition(object *restrict object_3D, ray pixel_ray){
         .distance = collision_data.distance,
         .surface_normal = collision_data.surface_normal,
         .point = collision_data.point,
-        .material = object_3D->material
+        .material = object_3D->material,
+        .id = object_3D->id
     };
     return result;
 }

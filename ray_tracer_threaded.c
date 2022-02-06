@@ -6,14 +6,12 @@
 #include "utilities/definitions.h"
 #include "utilities/logging.h"
 
-/*
-TODO: Glass
-*/
+
 #ifndef REGION_SIZE
     #define REGION_SIZE 10
 #endif
 
-color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB ambient_color);
+color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB ambient_color, size_t medium);
 void* render_thread_pixel(void* thread_data);
 
 int main(int argc, char* argv[]){
@@ -39,10 +37,13 @@ int main(int argc, char* argv[]){
     bvh_tree* tree = new_bvh_tree(X);
 
     list* current = escena.objects;
+    size_t count = 1;
     while (current != NULL)
     {
         if(current->value != NULL){
             object* thing = current->value;
+            thing->id = count;
+            count++;
             transform_object(look_at, thing);
             add_object(tree, thing);
         }
@@ -176,7 +177,7 @@ void* render_thread_pixel(void* thread_data){
                     new_normal(x, y, data->distance)
                 );
 
-                ray_color = add_color(ray_color, render_pixel(pixel_ray, data->tree, data->bounces, data->ambient_color));
+                ray_color = add_color(ray_color, render_pixel(pixel_ray, data->tree, data->bounces, data->ambient_color, 0));
             }
 
             
@@ -192,22 +193,50 @@ void* render_thread_pixel(void* thread_data){
     return data;
 }
 
-color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB ambient_color){
+color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB ambient_color, size_t medium){
 
     collition hitted_object = get_bvh_collition(root, pixel_ray);
     if(hitted_object.is_hit && bounces >= 0){
         normal surface_normal = hitted_object.surface_normal;
         vector surface_point = hitted_object.point;
-
+        normal corrected_normal = dot(surface_normal, pixel_ray.direction) < 0.0 ? surface_normal : multiply(surface_normal,-1.0);
         ray generated_pixel_ray = {};
-        if(hitted_object.material.p_diffract < RAND(0.0,1.0)){
-            generated_pixel_ray = specular_ray(surface_normal, surface_point, pixel_ray, hitted_object.material.angle_spread_reflect);
-        } else {
-            generated_pixel_ray = diffuse_ray(surface_normal, surface_point);
+        size_t current_medium = medium;
+        if(hitted_object.material.is_dielectric){
+            double n1 = 1.0;
+            double n2 = hitted_object.material.refractive_index;
+            if(medium == hitted_object.id){
+                n1 = hitted_object.material.refractive_index;
+                n2 = 1.0;
+            }
+            double n = n1/n2;
+            double cosI = dot(corrected_normal, pixel_ray.direction);
+            double cosT2 = 1.0-(n*n*(1.0 - cosI*cosI));
+            if(cosT2 < 0.0){
+                if(hitted_object.material.p_diffract < RAND(0.0,1.0)){
+                    generated_pixel_ray = specular_ray(corrected_normal, surface_point, pixel_ray, hitted_object.material.angle_spread_reflect);
+                } else {
+                    generated_pixel_ray = diffuse_ray(corrected_normal, surface_point);
+                }
+            } else {
+
+                current_medium = (medium == hitted_object.id)? 0:hitted_object.id;
+                double cosT = n*cosI+sqrt(cosT2);
+                normal refracted_direction = to_normal(sub_vector(multiply(pixel_ray.direction, n), multiply(corrected_normal, cosT )));
+                generated_pixel_ray.direction = refracted_direction;
+                generated_pixel_ray.origin = hitted_object.point;
+            }
+        } else { 
+            if(hitted_object.material.p_diffract < RAND(0.0,1.0)){
+                generated_pixel_ray = specular_ray(corrected_normal, surface_point, pixel_ray, hitted_object.material.angle_spread_reflect);
+            } else {
+                generated_pixel_ray = diffuse_ray(corrected_normal, surface_point);
+            }
         }
+
         
-        color_RGB incoming_color = render_pixel(generated_pixel_ray, root, (bounces-1), ambient_color);
-        incoming_color = scale_color(incoming_color, dot(surface_normal, generated_pixel_ray.direction));
+        color_RGB incoming_color = render_pixel(generated_pixel_ray, root, (bounces-1), ambient_color, current_medium);
+        incoming_color = scale_color(incoming_color, dot(corrected_normal, generated_pixel_ray.direction));
 
         color_RGB surface_color = mix_color(hitted_object.material.color, incoming_color);
         color_RGB emmitance = scale_color(hitted_object.material.color, hitted_object.material.emmitance);

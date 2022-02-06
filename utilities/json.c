@@ -340,7 +340,6 @@ void free_json(json_object* root){
         if(root->tag != NULL){
             free(root->tag);
         }
-
         free(root);
     } else if(root->type == JSON_BOOLEAN || root->type == JSON_NUMBER || root->type == JSON_NULL  ){
         if(root->tag != NULL){

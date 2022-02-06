@@ -1,9 +1,10 @@
 {
     "width" : 640,
     "height" : 480,
-    "threads" : 10,
-    "bounces": 3,
     "rays": 10,
+    "bounces": 3,
+
+    "threads" : 10,
     "output" : {
         "path": "../out/my_result.bmp"
     },
@@ -42,13 +43,14 @@
             "path" : "../assets/bunny.obj",
             "material" : {
                 "color" : {
-                    "r" : 184,
-                    "g" : 115,
-                    "b" : 51
+                    "r" : 255,
+                    "g" : 255,
+                    "b" : 255
                 },
                 "emmitance" : 0.0,
                 "probability diffuse" : 0.1,
-                "angle of spread" : 0.0
+                "angle of spread" : 0.0,
+                "refractive index" : 1.45
             },
             "transformations" : [
                 { 
@@ -118,12 +120,17 @@
         },
         {
             "id" : "light",
-            "type" : "sphere",
+            "type" : "plane",
             "radius" : 20.0,
             "center" :  {
                 "x" : 0.0,
                 "y" : 100.0,
-                "z" : 100.0
+                "z" : 0.0
+            },
+            "normal" :  {
+                "x" : 0.0,
+                "y" : 1.0,
+                "z" : 0.0
             },
             "material" : {
                 "color" : {
@@ -131,14 +138,23 @@
                     "g" : 255,
                     "b" : 255
                 },
-                "emmitance" : 5.0,
+                "emmitance" : 50.0,
                 "probability diffuse" : 1.0,
                 "angle of spread" : 10.0
             } 
         }
     ],
 
-    "test" : null
+    "test" :  {
+        "r" : 184,
+        "g" : 115,
+        "b" : 51
+    },
+    "add" : {
+        "r" : 127,
+        "g" : 179,
+        "b" : 255
+    }
 
 }
 

@@ -70,6 +70,7 @@
     #define TRANSLATION_Z_TAG "tz"
 
     #define TRANSFORMATIONS_TAG "transformations"
+    #define REFRACTIVE_INDEX_TAG "refractive index"
 
 
     typedef struct scene scene;

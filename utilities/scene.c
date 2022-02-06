@@ -292,17 +292,20 @@ static properties get_material(json_object* current){
         fprintf(stderr, "Cannot parse material \n");
         exit(EXIT_FAILURE);
     }
-    properties material = {
-        .color = new_color_RGB(1.0,1.0,1.0),
-        .emmitance = COLOR_ERROR,
-        .p_diffract = 1.0,
-        .angle_spread_reflect = 0.0
-    };
+    properties material = {};
 
     material.color = get_color(get_json_object(current, COLOR));
     material.emmitance = get_double(get_json_object(current, MATERIAL_EMMITANCE)) + COLOR_ERROR;
     material.p_diffract = get_double(get_json_object(current, MATERIAL_P_DIFF));
     material.angle_spread_reflect  = get_double(get_json_object(current, MATERIAL_SPREAD));
+    material.refractive_index = NAN;
+    material.is_dielectric = false;
+
+    json_object* refractive_index = get_json_object(current, REFRACTIVE_INDEX_TAG);
+    if(refractive_index != NULL && refractive_index->type == JSON_NUMBER){
+        material.is_dielectric = true;
+        material.refractive_index = refractive_index->value.number;
+    }
 
     if(material.p_diffract < 0.0 || material.p_diffract > 1.0){
         fprintf(stderr, "Invalid probability, setting default \n");

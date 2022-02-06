@@ -13,12 +13,15 @@
         double emmitance;
         double p_diffract;
         double angle_spread_reflect;
+        double refractive_index;
+        bool is_dielectric;
     };
     
 
     typedef struct object object;
     struct object
     {
+        size_t id;
         box bounding_box;
         double surface_area;
         properties material;
@@ -33,6 +36,7 @@
     struct collition
     {
         bool is_hit;
+        size_t id;
         double distance;
         normal surface_normal;
         vector point;
