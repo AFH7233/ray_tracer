@@ -286,7 +286,6 @@ json_object* get_json_object(json_object* root, char* key){
     if(root->type == JSON_OBJECT){
        json_object* result = get(root->map, key);
        if(result == NULL){
-           fprintf(stderr, "Element not found\n");
            return NULL;
        }
        return result;
@@ -300,7 +299,6 @@ json_object* get_json_element(json_object* root, size_t index){
         if(index < root->length){
             return root->map[index];
         } else {
-           fprintf(stderr, "Element not found\n");
            return NULL;
         }
     } else {
