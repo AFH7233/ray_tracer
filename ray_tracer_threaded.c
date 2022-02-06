@@ -10,7 +10,7 @@
 TODO: Glass
 */
 #ifndef REGION_SIZE
-    #define REGION_SIZE 32
+    #define REGION_SIZE 10
 #endif
 
 color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB ambient_color);
