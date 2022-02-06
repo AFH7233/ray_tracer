@@ -168,8 +168,12 @@ void* render_thread_pixel(void* thread_data){
         for(size_t j = data->start_h; j<data->end_h; j++){
             color_RGB ray_color = new_color_RGB(0.0,0.0,0.0);
             for(size_t k = 0; k<data->rays_per_pixel; k++){
-                double rand_x = 1.0  - sqrt(2.0 - RAND(0.0,2.0));
-                double rand_y = 1.0  - sqrt(2.0 - RAND(0.0,2.0));
+                double factor_x = 2.0 - RAND(0.0,2.0);
+                factor_x = factor_x < ERROR ? 0.0:factor_x;
+                double factor_y = 2.0 - RAND(0.0,2.0);
+                factor_y = factor_y < ERROR ? 0.0:factor_y;
+                double rand_x = 1.0  - sqrt(factor_x);
+                double rand_y = 1.0  - sqrt(factor_y);
                 double x =  2.0*((i + rand_x)/ (double) data->height) - data->aspect;
                 double y = -2.0*((j + rand_y)/ (double) data->height) + 1.0;
                 ray pixel_ray = new_ray(
@@ -195,7 +199,9 @@ void* render_thread_pixel(void* thread_data){
 
 color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB ambient_color, size_t medium){
 
+
     collition hitted_object = get_bvh_collition(root, pixel_ray);
+
     if(hitted_object.is_hit && bounces >= 0){
         normal surface_normal = hitted_object.surface_normal;
         vector surface_point = hitted_object.point;

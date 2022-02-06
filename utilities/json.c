@@ -2,6 +2,7 @@
 
 
 static bool isnumber(char* line, size_t index);
+static bool isfraction(char* value);
 static bool ispositive(char* line);
 static bool iswhole(char* value);
 static bool isexponent(char* value);
@@ -368,7 +369,7 @@ static bool isnumber(char* line, size_t index){
         sscanf(&line[index], "%[-]%[1-9]%[0-9.eE+-]", minus, digit, value);
         if( strnlen(minus, MAX_STRING_SIZE) == 1 && strnlen(digit, MAX_STRING_SIZE) == 1){
             if(value[0] !='\0'){
-                return ispositive(value);
+                return ispositive(value) || isfraction(value);
             } else {
                 return true;
             }
@@ -395,8 +396,24 @@ static bool ispositive(char* value){
     sscanf(value, "%[0-9eE+-]%[.]%[0-9.eE+-]", left, point, right);
     if(strnlen(point, MAX_STRING_SIZE) == 1){
         return iswhole(left) && isexponent(right);
-    } else {
+    } else if(strnlen(point, MAX_STRING_SIZE) == 0){
         return iswhole(left);                
+    } else {
+        return false;
+    }
+    return false;
+}
+
+static bool isfraction(char* value){
+    char right[MAX_STRING_SIZE];
+    right[0] = '\0';
+    char point[MAX_STRING_SIZE];
+    point[0] = '\0';
+    sscanf(value, "%[.]%[0-9.eE+-]", point, right);
+    if(strnlen(point, MAX_STRING_SIZE) == 1){
+        return isexponent(right);            
+    } else {
+        return false;
     }
     return false;
 }
@@ -420,8 +437,10 @@ static bool isexponent(char* value){
     sscanf(value, "%[0-9.+-]%[eE]%[0-9.eE+-]", left, exponent, right);
     if(strnlen(exponent, MAX_STRING_SIZE) == 1){
         return iswhole(left) && issigned(right);
+    } else if(strnlen(exponent, MAX_STRING_SIZE) == 0) {
+        return iswhole(left);                 
     } else {
-        return iswhole(left);                
+        return false;
     }
     return false;
 }
@@ -436,9 +455,11 @@ static bool issigned(char* value){
     sscanf(value, "%[+-]%[0-9.eE+-]", sign, right);
     if(strnlen(sign, MAX_STRING_SIZE) == 1){
         return iswhole(right);
-    } else {
+    } else if(strnlen(sign, MAX_STRING_SIZE) == 0){
         sscanf(value, "%[0-9.eE]", left);
-        return iswhole(left);                
+        return iswhole(left);  
+    } else {
+        return false;
     }
     return false;
 }

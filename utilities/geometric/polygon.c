@@ -1,6 +1,5 @@
 #include "polygon.h"
 
-
 geometry_collition get_face_collition(face *restrict surface, ray pixel_ray){
     geometry_collition result = {.is_hit=false};
 

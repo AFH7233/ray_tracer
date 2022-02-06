@@ -6,7 +6,7 @@
     vector ray_sphere = sub_vector(pixel_ray.origin, bola->center);
     double b = dot(pixel_ray.direction, ray_sphere);
     double discriminante = b*b - (dot(ray_sphere,ray_sphere) - bola->radio*bola->radio); 
-    if(discriminante < 0){
+    if(discriminante < ERROR){
         geometry_collition result = {.is_hit = false};
         return result;
     } else {

@@ -56,6 +56,9 @@ vector sub_vector(vector a, vector b){
 
 
 vector to_normal(vector a){
+    /*if(isnan(a.x) || isnan(a.y) || isnan(a.z)){
+        fprintf(stderr, "%f %f %f\n", a.x, a.y, a.z);
+    }*/
     vector c = normalize(a);
     c.w = 0.0;
     return c;
@@ -83,7 +86,7 @@ normal random_sphere_direction(normal direction, double cone_angle_degree) {
 
   double z = RAND(cos(spread * M_PI), 1.0);
   z = z > (1.0-ERROR)? 1.0 : z;
-  double r = sqrt(1.0 - z * z); 
+  double r = sqrt(1.0 + ERROR - z * z); 
   double theta = RAND(-M_PI, M_PI);
   double x = r * cos(theta);
   double y = r * sin(theta);
