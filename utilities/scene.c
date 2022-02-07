@@ -46,9 +46,9 @@ static scene to_scene(json_object* json, object_array* garbage){
     }
 
     empty.bounces = get_integer(get_json_object(json, NUMBER_OF_BOUNCES));
-    if(empty.bounces < 1){
+    if(empty.bounces < 0){
         fprintf(stderr, "Invalid number for the ray tracer\n");
-        empty.bounces = 2;       
+        empty.bounces = 1;       
     }
 
     empty.threads = get_integer(get_json_object(json, NUMBER_OF_THREADS));

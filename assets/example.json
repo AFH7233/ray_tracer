@@ -1,7 +1,7 @@
 {
     "width" : 640,
     "height" : 480,
-    "rays": 10,
+    "rays": 1000,
     "bounces": 3,
 
     "threads" : 10,
@@ -43,13 +43,13 @@
             "path" : "../assets/bunny.obj",
             "material" : {
                 "color" : {
-                    "r" : 255,
-                    "g" : 255,
-                    "b" : 255
+                    "r" : 184,
+                    "g" : 82,
+                    "b" : 51
                 },
                 "emmitance" : 0.0,
                 "probability diffuse" : 0.1,
-                "angle of spread" : 0.0,
+                "angle of spread" : 10.0,
                 "refractive index" : 1.45
             },
             "transformations" : [

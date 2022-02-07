@@ -14,6 +14,7 @@
     #include "geometric/algebra.h"
     #include "geometric/box.h"
     #include "object.h"
+    #include "dynamic_array.h"
 
     //I don't like it allocates memory, but Imma fix that some day
 

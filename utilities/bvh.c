@@ -167,46 +167,43 @@ void free_bvh_tree(bvh_tree* root){
 }
 
 collition get_bvh_collition(bvh_tree* root, ray pixel_ray){
+    object_array stack = new_array_with_cap(1000);
+    array_push(&stack, root); 
     collition result = {.is_hit = false};
-    if(root == NULL){
-        return result;
-    }
-
-    bool is_collition = is_collition_dected(root->bounding_box, pixel_ray);
-    if (is_collition && root->is_leaf)
+    double distance = DBL_MAX;
+    while (stack.length > 0)
     {
-        size_t length = root->num_of_objects;
-        object** array = root->object_array;
-        double distance = DBL_MAX;
-        for(size_t i=0; i < length; i++){
-            collition object_collition = get_collition(array[i], pixel_ray);
-            if(object_collition.is_hit && object_collition.distance < distance){
-                distance = object_collition.distance;
-                result = object_collition;
-            }
+        bvh_tree* current = array_pop(&stack);
+        if(current == NULL){
+            continue;
         }
-        return result;
-    } else if(is_collition && !root->is_leaf){
-        collition left_collition = get_bvh_collition(root->left, pixel_ray);
-        collition right_collition = get_bvh_collition(root->right, pixel_ray);
-        if(left_collition.is_hit && right_collition.is_hit){
-            if(left_collition.distance < right_collition.distance){
-                return left_collition;
-            } else {
-                return right_collition;
+
+        bool is_collition = is_collition_dected(current->bounding_box, pixel_ray);
+        if (is_collition && current->is_leaf)
+        {
+            size_t length = current->num_of_objects;
+            object** array = current->object_array;
+            for(size_t i=0; i < length; i++){
+                collition object_collition = get_collition(array[i], pixel_ray);
+                if(object_collition.is_hit && object_collition.distance < distance){
+                    distance = object_collition.distance;
+                    result = object_collition;
+                }
             }
-        } else if(left_collition.is_hit){
-             return left_collition;
-        } else if(right_collition.is_hit){
-            return right_collition;
-        } else {
-            return result;
-        }
-        
-    } else {
-        return result;
+        } else if(is_collition && !root->is_leaf){
+
+            if(current->left != NULL){
+                array_push(&stack, current->left);
+            }
+
+            if(current->right != NULL){
+                array_push(&stack, current->right);
+            }
+
+        } 
     }
-    
+    free(stack.elements);
+    return result;
 }
 
 

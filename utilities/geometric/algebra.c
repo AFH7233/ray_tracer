@@ -56,9 +56,6 @@ vector sub_vector(vector a, vector b){
 
 
 vector to_normal(vector a){
-    /*if(isnan(a.x) || isnan(a.y) || isnan(a.z)){
-        fprintf(stderr, "%f %f %f\n", a.x, a.y, a.z);
-    }*/
     vector c = normalize(a);
     c.w = 0.0;
     return c;

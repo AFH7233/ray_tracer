@@ -10,6 +10,16 @@ object_array new_array(){
     return arr;
 }
 
+object_array new_array_with_cap(size_t capacity){
+    void** elements = calloc(capacity, sizeof(unsigned char*));
+    object_array arr = {
+        .cap = capacity,
+        .length = 0,
+        .elements = elements
+    };
+    return arr;
+}
+
 void array_push(object_array* arr, void* value){
     array_add(arr, arr->length, value);
     arr->length++;
