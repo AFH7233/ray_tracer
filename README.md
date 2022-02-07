@@ -1,6 +1,7 @@
-## TLDR
+# Path tracer
 
 This is a path tracer inteded just for learning, it implements diffuse and specular objects with dielectric objects too. 
+An example of the output can be found ond `out\expensive.png`.
 
 ## How to build
 
