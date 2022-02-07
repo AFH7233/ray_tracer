@@ -3,5 +3,6 @@
 *.png
 **/.vscode
 *.obj
+**/out
 !expensive.png
 !bunny.obj
