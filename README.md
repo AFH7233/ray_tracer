@@ -297,11 +297,3 @@ random values for colors and positions.
 }
 
 ```
-
-## Result
-
-The following image was used the example scene in the json.
-
-<img src="out/expensive.png"
-     alt="Result"
-     style="float: left; margin-right: 10px;" />
