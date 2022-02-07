@@ -1,9 +1,8 @@
 {
-    "width" : 640,
-    "height" : 480,
-    "rays": 1000,
-    "bounces": 3,
-
+    "width" : 1920,
+    "height" : 1080,
+    "rays": 10000,
+    "bounces": 5,
     "threads" : 10,
     "output" : {
         "path": "../out/my_result.bmp"
@@ -30,38 +29,33 @@
         "z" : 100.0
     },
 
-    "ambient color" : {
-        "r" : 127,
-        "g" : 179,
-        "b" : 255
+    "ambient color" :  {
+        "r" : 0,
+        "g" : 0,
+        "b" : 0
     },
 
     "objects" : [
+
         {
-            "type" : "OBJ",
-            "scale" : 7.0,
-            "path" : "../assets/bunny.obj",
+            "type" : "sphere",
+            "radius" : 5.0,
+            "center" :  {           
+                        "x" : 0.0,
+                        "y" : 10.0,
+                        "z" : 0.0
+            },
             "material" : {
                 "color" : {
-                    "r" : 184,
-                    "g" : 82,
-                    "b" : 51
+                    "r" : 255,
+                    "g" : 255,
+                    "b" : 255
                 },
                 "emmitance" : 0.0,
-                "probability diffuse" : 0.1,
+                "probability diffuse" : 0.0,
                 "angle of spread" : 10.0,
                 "refractive index" : 1.45
-            },
-            "transformations" : [
-                { 
-                    "rx": 0.0,
-                    "ry": 180.0,
-                    "rz": 0.0,
-                    "tx": 0.0,
-                    "ty": 0.0,
-                    "tz": 0.0
-                }
-            ]
+            }
         },
         {
             "type" : "sphere",
@@ -90,8 +84,8 @@
                     "b" : {"min" : 0.0, "max" : 255.0}
                 },
                 "emmitance" : 0.0,
-                "probability diffuse" : 1.0,
-                "angle of spread" : 10.0
+                "probability diffuse" : {"min" : 0.5, "max" : 1.0},
+                "angle of spread" : {"min" : 5.0, "max" : 10.0}
             } 
         },
         {
@@ -124,7 +118,7 @@
             "radius" : 20.0,
             "center" :  {
                 "x" : 0.0,
-                "y" : 100.0,
+                "y" : 50.0,
                 "z" : 0.0
             },
             "normal" :  {
@@ -138,23 +132,11 @@
                     "g" : 255,
                     "b" : 255
                 },
-                "emmitance" : 50.0,
+                "emmitance" : 5.0,
                 "probability diffuse" : 1.0,
                 "angle of spread" : 10.0
             } 
         }
-    ],
-
-    "test" :  {
-        "r" : 184,
-        "g" : 115,
-        "b" : 51
-    },
-    "add" : {
-        "r" : 127,
-        "g" : 179,
-        "b" : 255
-    }
-
+    ]
 }
 

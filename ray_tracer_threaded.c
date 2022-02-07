@@ -14,6 +14,11 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB 
 void* render_thread_pixel(void* thread_data);
 
 int main(int argc, char* argv[]){
+
+    if(argc < 2){
+        fprintf(stderr, "I need a json scene\n");
+        exit(EXIT_FAILURE);
+    }
     
     srand (time(0));
     object_array garbage = new_array();

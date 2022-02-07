@@ -1,5 +1,6 @@
-**/out
+*.exe
 *.bmp
 **/.vscode
 *.obj
+!expensive.bmp
 !bunny.obj
