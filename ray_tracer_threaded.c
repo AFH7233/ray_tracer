@@ -220,18 +220,18 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB 
                 double cosI = dot(corrected_normal, pixel_ray.direction);
                 double cosT2 = 1.0-(n*n*(1.0 - cosI*cosI));
                 if(cosT2 < 0.0){
+                    generated_pixel_ray = specular_ray(corrected_normal, surface_point, pixel_ray, hitted_object.material.angle_spread_reflect);
+                } else {
                     if(hitted_object.material.p_diffract < RAND(0.0,1.0)){
-                        generated_pixel_ray = specular_ray(corrected_normal, surface_point, pixel_ray, hitted_object.material.angle_spread_reflect);
+                        current_medium = (medium == hitted_object.id)? 0:hitted_object.id;
+                        double cosT = n*cosI+sqrt(cosT2);
+                        normal refracted_direction = to_normal(sub_vector(multiply(pixel_ray.direction, n), multiply(corrected_normal, cosT )));
+                        generated_pixel_ray.direction = refracted_direction;
+                        generated_pixel_ray.origin = hitted_object.point;
                     } else {
                         generated_pixel_ray = diffuse_ray(corrected_normal, surface_point);
                     }
-                } else {
 
-                    current_medium = (medium == hitted_object.id)? 0:hitted_object.id;
-                    double cosT = n*cosI+sqrt(cosT2);
-                    normal refracted_direction = to_normal(sub_vector(multiply(pixel_ray.direction, n), multiply(corrected_normal, cosT )));
-                    generated_pixel_ray.direction = refracted_direction;
-                    generated_pixel_ray.origin = hitted_object.point;
                 }
             } else { 
                 if(hitted_object.material.p_diffract < RAND(0.0,1.0)){
@@ -241,19 +241,17 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB 
                 }
             }
 
+            //This was from wikipedia and worked better than my weird formula
+            double p = 1.0 / (2.0 * M_PI);
+            double cos_theta = dot(generated_pixel_ray.direction, corrected_normal);
+            color_RGB BRDF = divide_color(hitted_object.material.color, M_PI);
             
             color_RGB incoming_color = render_pixel(generated_pixel_ray, root, (bounces-1), ambient_color, current_medium);
-            incoming_color = scale_color(incoming_color, dot(corrected_normal, generated_pixel_ray.direction));
-
-            color_RGB surface_color = mix_color(hitted_object.material.color, incoming_color);
             color_RGB emmitance = scale_color(hitted_object.material.color, hitted_object.material.emmitance);
-            color_RGB brdf = add_color(emmitance, surface_color);
+            color_RGB result = add_color(emmitance, scale_color(mix_color(incoming_color, BRDF), cos_theta/p));
 
-            return brdf;
-        } else if(hitted_object.is_hit){
-            color_RGB emmitance = scale_color(hitted_object.material.color, hitted_object.material.emmitance);
-            return emmitance;
-        } else {
+            return result;
+        }  else {
             //return new_color_RGB( 0.5, 0.7, 1.0);
             return  ambient_color; 
         } 
