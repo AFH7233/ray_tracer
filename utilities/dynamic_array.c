@@ -52,8 +52,7 @@ void array_add(object_array* arr, size_t index, void* value){
         }
         free(temp);
         arr->cap = 2*arr->cap;
-        arr->elements[arr->length] = value;
-        arr->length++;               
+        arr->elements[index] = value;         
     }
 }
 

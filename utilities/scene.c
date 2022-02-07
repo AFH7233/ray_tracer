@@ -259,9 +259,9 @@ static color_RGB get_color(json_object* current){
     if(color.red > (255.0)){
         fprintf(stderr, "Limiting to 255 \n");
         color.red = 255.0 - (255.0*COLOR_ERROR);
-    } else if(color.red < COLOR_ERROR){
+    } else if(color.red < 0.0){
         fprintf(stderr, "No negative colors \n");
-        color.red = COLOR_ERROR;  
+        color.red = 0.0;  
     }
     color.red = color.red/255.0;
 
@@ -269,9 +269,9 @@ static color_RGB get_color(json_object* current){
     if(color.green >  (255.0 )){
         fprintf(stderr, "Limiting to 255 \n");
         color.green = 255.0 - (255.0*COLOR_ERROR);
-    } else if(color.green < COLOR_ERROR){
+    } else if(color.green < 0.0){
         fprintf(stderr, "No negative colors \n");
-        color.green = COLOR_ERROR;  
+        color.green = 0.0;  
     }
     color.green = color.green/254.0;
 
@@ -279,9 +279,9 @@ static color_RGB get_color(json_object* current){
     if(color.blue >  (255.0 )){
         fprintf(stderr, "Limiting to 255 \n");
         color.blue = 255.0 - (255.0*COLOR_ERROR);
-    } else if(color.blue <COLOR_ERROR){
+    } else if(color.blue < 0.0){
         fprintf(stderr, "No negative colors \n");
-        color.blue = COLOR_ERROR;  
+        color.blue = 0.0;  
     }
     color.blue = color.blue/255.0;
     return color;
