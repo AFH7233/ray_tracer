@@ -71,73 +71,79 @@ void add_object(bvh_tree* root, object* object_3d){
 }
 
 void distribute_bvh(bvh_tree* root){
-    if(root->num_of_objects < 5){
-        return;
-    }
-
-    root->is_leaf = false;
-
-    switch (root->eje)
+    object_array stack = new_array_with_cap(1000);
+    array_push(&stack, root); 
+    while (stack.length > 0)
     {
-    case X:
-        root->left = new_bvh_tree(Y);
-        root->right = new_bvh_tree(Y);
-        qsort(root->object_array, root->num_of_objects, sizeof(object*), compare_by_x);
-
-        break;
-    case Y:
-        root->left = new_bvh_tree(Z);
-        root->right = new_bvh_tree(Z);
-        qsort(root->object_array, root->num_of_objects, sizeof(object*), compare_by_y);
-        break;
-    case Z:
-        root->left = new_bvh_tree(X);
-        root->right = new_bvh_tree(X);
-        qsort(root->object_array, root->num_of_objects, sizeof(object*), compare_by_z);
-        break;
-    default:
-        break;
-    }
- 
-
-    size_t length = root->num_of_objects;
-    double* areas = calloc(length, sizeof(double));
-    object** array = root->object_array;
-
-    areas[0] = (array[0])->surface_area;
-    for(size_t i=1; i < length; i++){
-        areas[i] = (array[i])->surface_area;
-        areas[i] += areas[i-1];
-    }
-
-    double min_area = DBL_MAX;
-    size_t cut = 0;
-    for(size_t i=0; i < length; i++){
-        double left_area = areas[i];
-        double right_area = areas[length-1] - areas[i];
-
-        double thing = (i + 1.0)*(left_area) + (length-i-1.0)*(right_area);
-        if(thing < min_area){
-            cut = i;
-            min_area = thing;
+        bvh_tree* current = array_pop(&stack);
+        if(current->num_of_objects < 5){
+            return;
         }
+
+        current->is_leaf = false;
+
+        switch (current->eje)
+        {
+        case X:
+            current->left = new_bvh_tree(Y);
+            current->right = new_bvh_tree(Y);
+            qsort(current->object_array, current->num_of_objects, sizeof(object*), compare_by_x);
+
+            break;
+        case Y:
+            current->left = new_bvh_tree(Z);
+            current->right = new_bvh_tree(Z);
+            qsort(current->object_array, current->num_of_objects, sizeof(object*), compare_by_y);
+            break;
+        case Z:
+            current->left = new_bvh_tree(X);
+            current->right = new_bvh_tree(X);
+            qsort(current->object_array, current->num_of_objects, sizeof(object*), compare_by_z);
+            break;
+        default:
+            break;
+        }
+    
+
+        size_t length = current->num_of_objects;
+        double* areas = calloc(length, sizeof(double));
+        object** array = current->object_array;
+
+        areas[0] = (array[0])->surface_area;
+        for(size_t i=1; i < length; i++){
+            areas[i] = (array[i])->surface_area;
+            areas[i] += areas[i-1];
+        }
+
+        double min_area = DBL_MAX;
+        size_t cut = 0;
+        for(size_t i=0; i < length; i++){
+            double left_area = areas[i];
+            double right_area = areas[length-1] - areas[i];
+
+            double thing = (i + 1.0)*(left_area) + (length-i-1.0)*(right_area);
+            if(thing < min_area){
+                cut = i;
+                min_area = thing;
+            }
+        }
+
+        for(size_t i=0; i < cut+1; i++){
+            add_object(current->left, array[i]);
+        }
+
+        for(size_t i=cut+1; i < length; i++){
+            add_object(current->right, array[i]);
+        }
+
+        free_node_object_list(current);
+        free(areas);
+
+        array_push(&stack, current->left);
+        array_push(&stack, current->right);
     }
-
-    for(size_t i=0; i < cut+1; i++){
-        add_object(root->left, array[i]);
-    }
-
-    for(size_t i=cut+1; i < length; i++){
-        add_object(root->right, array[i]);
-    }
-
-    free_node_object_list(root);
-    free(areas);
-
-    distribute_bvh(root->left);
-    distribute_bvh(root->right);
-
-
+    
+    free(stack.elements);
     return;
 }
   
