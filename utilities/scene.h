@@ -71,6 +71,7 @@
 
     #define TRANSFORMATIONS_TAG "transformations"
     #define REFRACTIVE_INDEX_TAG "refractive index"
+    #define ABSORBING_TAG "absorbing"
 
 
     typedef struct scene scene;

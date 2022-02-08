@@ -208,7 +208,7 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB 
     if(bounces > 0){
         collition hitted_object = get_bvh_collition(root, pixel_ray);
 
-        if(hitted_object.is_hit){
+        if(hitted_object.is_hit && !hitted_object.material.is_absorbing){
             normal surface_normal = hitted_object.surface_normal;
             vector surface_point = hitted_object.point;
             normal corrected_normal = dot(surface_normal, pixel_ray.direction) < 0.0 ? surface_normal : multiply(surface_normal,-1.0);
@@ -256,6 +256,9 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB 
             color_RGB result = add_color(emmitance, scale_color(mix_color(incoming_color, BRDF), cos_theta/p));
 
             return result;
+        } else if (hitted_object.is_hit){
+            color_RGB emmitance = scale_color(hitted_object.material.color, hitted_object.material.emmitance);
+            return emmitance;
         }  else {
             //return new_color_RGB( 0.5, 0.7, 1.0);
             return  ambient_color; 

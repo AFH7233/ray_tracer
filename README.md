@@ -123,7 +123,7 @@ also accept the random format explained above.
 
 - *materials* : Materials must include a `color`, an `emmitance` attribute if it is above 0.0 it works as a light, `probability of difffuse` is
 the probability from 0.0 to 1.0 that a ray is randomly diffused or reflected like a mirror. `angle of spread` only applies when a ray is reflected it diffuses
-the reflected ray inside a cone of the given angle. Finally the "refractive index" attribute is optional and it is only used if the material is something like glass.
+the reflected ray inside a cone of the given angle. The "refractive index" attribute is optional and it is only used if the material is something like glass. Another optional feature is the attribute `absorbing` which stop the bounces and just return the emmitance it can be used for lights.
 
 ```
 {
@@ -148,6 +148,19 @@ the reflected ray inside a cone of the given angle. Finally the "refractive inde
         "emmitance" : 0.0,
         "probability diffuse" : 0.0,
         "angle of spread" : 10.0
+    },
+
+
+    "absorbing material" : {
+        "color" : {
+            "r" : 255,
+            "g" : 255,
+            "b" : 255
+        },
+        "emmitance" : 0.0,
+        "probability diffuse" : 0.0,
+        "angle of spread" : 10.0,
+        "absorbing" : true
     },
 }
 

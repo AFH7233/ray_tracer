@@ -300,6 +300,7 @@ static properties get_material(json_object* current){
     material.angle_spread_reflect  = get_double(get_json_object(current, MATERIAL_SPREAD));
     material.refractive_index = NAN;
     material.is_dielectric = false;
+    material.is_absorbing = false; 
 
     json_object* refractive_index = get_json_object(current, REFRACTIVE_INDEX_TAG);
     if(refractive_index != NULL && refractive_index->type == JSON_NUMBER){
@@ -316,6 +317,11 @@ static properties get_material(json_object* current){
         fprintf(stderr, "Invalid angle, setting default \n");
         material.angle_spread_reflect = ERROR;
     } 
+
+    json_object* absorbing = get_json_object(current, ABSORBING_TAG);
+    if(absorbing != NULL && absorbing->type == JSON_BOOLEAN){
+        material.is_absorbing = absorbing->value.boolean;
+    }
 
     return material;
 }

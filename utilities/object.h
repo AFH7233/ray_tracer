@@ -15,6 +15,7 @@
         double angle_spread_reflect;
         double refractive_index;
         bool is_dielectric;
+        bool is_absorbing;
     };
     
 
