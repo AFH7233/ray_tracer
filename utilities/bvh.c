@@ -76,8 +76,8 @@ void distribute_bvh(bvh_tree* root){
     while (stack.length > 0)
     {
         bvh_tree* current = array_pop(&stack);
-        if(current->num_of_objects < 5){
-            return;
+        if(current->num_of_objects < 4){
+            continue;
         }
 
         current->is_leaf = false;
