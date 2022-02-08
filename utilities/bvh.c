@@ -3,10 +3,10 @@
 static int compare_by_x(const void * a, const void * b);
 static int compare_by_y(const void * a, const void * b);
 static int compare_by_z(const void * a, const void * b);
-static bool is_collition_dected(box bounding_box, ray pixel_ray);
+static double is_collition_dected(box bounding_box, ray pixel_ray);
 
 
-bvh_tree* new_bvh_tree(axis eje){
+bvh_tree* new_bvh_tree(){
     bvh_tree* root = malloc(sizeof(bvh_tree));
     
     root->is_leaf = true;
@@ -20,7 +20,7 @@ bvh_tree* new_bvh_tree(axis eje){
 
     root->left = NULL;
     root->right = NULL;
-    root->eje = eje;
+    root->eje = X;
     root->bounding_box = (box) {
         .min_x = DBL_MAX,
         .min_y = DBL_MAX,
@@ -73,65 +73,81 @@ void add_object(bvh_tree* root, object* object_3d){
 void distribute_bvh(bvh_tree* root){
     object_array stack = new_array_with_cap(1000);
     array_push(&stack, root); 
+    axis ejes[] = {X, Y, Z};
     while (stack.length > 0)
     {
         bvh_tree* current = array_pop(&stack);
-        if(current->num_of_objects < 4){
+        if(current->num_of_objects < 2){
             continue;
         }
 
         current->is_leaf = false;
+        double min_area = DBL_MAX;
+        size_t length = current->num_of_objects;
+        double* areas = calloc(length, sizeof(double));
+        axis winner = X;
+        object** array = current->object_array;
+        size_t cut = 0;
+        for(size_t m = 0; m<3; m++){
+            switch (ejes[m])
+            {
+            case X:
+                qsort(array, current->num_of_objects, sizeof(object*), compare_by_x);
 
-        switch (current->eje)
+                break;
+            case Y:
+                qsort(array, current->num_of_objects, sizeof(object*), compare_by_y);
+                break;
+            case Z:
+                qsort(array, current->num_of_objects, sizeof(object*), compare_by_z);
+                break;
+            default:
+                break;
+            }
+
+            areas[0] = (array[0])->surface_area;
+            for(size_t i=1; i < length; i++){
+                areas[i] = (array[i])->surface_area;
+                areas[i] += areas[i-1];
+            }
+
+            for(size_t i=0; i < length; i++){
+                double left_area = areas[i];
+                double right_area = areas[length-1] - areas[i];
+
+                double thing = (i + 1.0)*(left_area) + (length-i-1.0)*(right_area);
+                if(thing < min_area){
+                    cut = i;
+                    min_area = thing;
+                    winner = ejes[m];
+                }
+            }
+        }
+
+        switch (winner)
         {
         case X:
-            current->left = new_bvh_tree(Y);
-            current->right = new_bvh_tree(Y);
-            qsort(current->object_array, current->num_of_objects, sizeof(object*), compare_by_x);
-
+            current->eje = X;
+            qsort(array, current->num_of_objects, sizeof(object*), compare_by_x);
             break;
         case Y:
-            current->left = new_bvh_tree(Z);
-            current->right = new_bvh_tree(Z);
-            qsort(current->object_array, current->num_of_objects, sizeof(object*), compare_by_y);
+            current->eje = Y;
+            qsort(array, current->num_of_objects, sizeof(object*), compare_by_y);
             break;
         case Z:
-            current->left = new_bvh_tree(X);
-            current->right = new_bvh_tree(X);
-            qsort(current->object_array, current->num_of_objects, sizeof(object*), compare_by_z);
+            current->eje = Z;
+            qsort(array, current->num_of_objects, sizeof(object*), compare_by_z);
             break;
         default:
             break;
         }
-    
 
-        size_t length = current->num_of_objects;
-        double* areas = calloc(length, sizeof(double));
-        object** array = current->object_array;
-
-        areas[0] = (array[0])->surface_area;
-        for(size_t i=1; i < length; i++){
-            areas[i] = (array[i])->surface_area;
-            areas[i] += areas[i-1];
-        }
-
-        double min_area = DBL_MAX;
-        size_t cut = 0;
-        for(size_t i=0; i < length; i++){
-            double left_area = areas[i];
-            double right_area = areas[length-1] - areas[i];
-
-            double thing = (i + 1.0)*(left_area) + (length-i-1.0)*(right_area);
-            if(thing < min_area){
-                cut = i;
-                min_area = thing;
-            }
-        }
-
+        current->left = new_bvh_tree();
         for(size_t i=0; i < cut+1; i++){
             add_object(current->left, array[i]);
         }
 
+        current->right = new_bvh_tree();
         for(size_t i=cut+1; i < length; i++){
             add_object(current->right, array[i]);
         }
@@ -147,6 +163,56 @@ void distribute_bvh(bvh_tree* root){
     return;
 }
   
+collition get_bvh_collition(bvh_tree* root, ray pixel_ray){
+    object_array stack = new_array_with_cap(1000);
+    array_push(&stack, root); 
+    collition result = {.is_hit = false};
+    double distance = DBL_MAX;
+    while (stack.length > 0)
+    {
+        bvh_tree* current = array_pop(&stack);
+        if(current == NULL){
+            continue;
+        }
+
+        double bvh_distance  = is_collition_dected(current->bounding_box, pixel_ray);
+        if (current->is_leaf && bvh_distance < distance)
+        {
+            size_t length = current->num_of_objects;
+            object** array = current->object_array;
+            for(size_t i=0; i < length; i++){
+                collition object_collition = get_collition(array[i], pixel_ray);
+                if(object_collition.is_hit && object_collition.distance < distance){
+                    distance = object_collition.distance;
+                    result = object_collition;
+                }
+            }
+        } else if(bvh_distance < distance){
+
+            double distance_left = DBL_MAX;
+            if(current->left != NULL){
+                distance_left = is_collition_dected(current->bounding_box, pixel_ray);
+            }
+
+            double distance_right = DBL_MAX;
+            if(current->right != NULL){
+                distance_right = is_collition_dected(current->bounding_box, pixel_ray);
+            }
+
+            if(distance_right < distance_left){
+                array_push(&stack, current->left);
+                array_push(&stack, current->right);
+            } else {
+                array_push(&stack, current->right);
+                array_push(&stack, current->left);
+            }    
+
+        } 
+    }
+    free(stack.elements);
+    return result;
+}
+
 
 void free_node_object_list(bvh_tree* root){
     free(root->object_array);
@@ -172,49 +238,8 @@ void free_bvh_tree(bvh_tree* root){
     }
 }
 
-collition get_bvh_collition(bvh_tree* root, ray pixel_ray){
-    object_array stack = new_array_with_cap(1000);
-    array_push(&stack, root); 
-    collition result = {.is_hit = false};
-    double distance = DBL_MAX;
-    while (stack.length > 0)
-    {
-        bvh_tree* current = array_pop(&stack);
-        if(current == NULL){
-            continue;
-        }
-
-        bool is_collition = is_collition_dected(current->bounding_box, pixel_ray);
-        if (is_collition && current->is_leaf)
-        {
-            size_t length = current->num_of_objects;
-            object** array = current->object_array;
-            for(size_t i=0; i < length; i++){
-                collition object_collition = get_collition(array[i], pixel_ray);
-                if(object_collition.is_hit && object_collition.distance < distance){
-                    distance = object_collition.distance;
-                    result = object_collition;
-                }
-            }
-        } else if(is_collition && !root->is_leaf){
-
-            if(current->left != NULL){
-                array_push(&stack, current->left);
-            }
-
-            if(current->right != NULL){
-                array_push(&stack, current->right);
-            }
-
-        } 
-    }
-    free(stack.elements);
-    return result;
-}
-
-
 //It was copied from https://gamedev.stackexchange.com/questions/18436/most-efficient-aabb-vs-ray-collision-algorithms
-static bool is_collition_dected(box bounding_box , ray pixel_ray){
+static double is_collition_dected(box bounding_box , ray pixel_ray){
     vector dirfrac = new_vector(
         1.0/pixel_ray.direction.x,
         1.0/pixel_ray.direction.y,
@@ -235,16 +260,16 @@ static bool is_collition_dected(box bounding_box , ray pixel_ray){
     // if tmax < 0, ray (line) is intersecting AABB, but the whole AABB is behind us
     if (tmax < 0)
     {
-        return false;
+        return DBL_MAX;
     }
 
     // if tmin > tmax, ray doesn't intersect AABB
     if (tmin > tmax)
     {
-        return false;
+        return DBL_MAX;
     }
 
-    return true;
+    return tmin < 0.0? tmax : tmin;
 }
 
 static int compare_by_x(const void * a, const void * b){

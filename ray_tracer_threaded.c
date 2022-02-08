@@ -38,7 +38,7 @@ int main(int argc, char* argv[]){
     double d = sqrt(aspect*aspect + 1.0)/(2.0*tan(M_PI*camara.fov/360.0));
 
     // Setup objects
-    bvh_tree* tree = new_bvh_tree(X);
+    bvh_tree* tree = new_bvh_tree();
 
     list* current = escena.objects;
     size_t count = 1;
