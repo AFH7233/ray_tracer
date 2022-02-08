@@ -543,7 +543,7 @@ static json_object* to_json_object(list* head){
     while(current != NULL){
         if(current->value != NULL && !current->is_visited){
             parse_tree* node = (parse_tree*) current->value;
-            if(node->type == OBJECT_BEGIN){
+            if(node->type == OBJECT_BEGIN && root == NULL){
                 root = malloc(sizeof(json_object));
                 root->type = JSON_OBJECT;
                 root->tag = NULL;
