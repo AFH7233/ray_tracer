@@ -366,12 +366,12 @@ static bool isnumber(char* line){
         minus[0] = '\0';
         char digit[MAX_STRING_SIZE];
         digit[0] = '\0';
-        sscanf(line, "%[-]%[1-9]%[0-9.eE+-]", minus, digit, value);
+        sscanf(line, "%[-]%[0-9]%[0-9.eE+-]", minus, digit, value);
         if( strnlen(minus, MAX_STRING_SIZE) == 1 && strnlen(digit, MAX_STRING_SIZE) > 0){
             if(value[0] !='\0'){
-                return ispositive(value) || isfraction(value);
+                return isfraction(value);
             } else {
-                return true;
+                return iswhole(digit);
             }
         } else {
             value[0] = '\0';
