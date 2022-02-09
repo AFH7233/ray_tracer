@@ -4,6 +4,7 @@ static int compare_by_x(const void * a, const void * b);
 static int compare_by_y(const void * a, const void * b);
 static int compare_by_z(const void * a, const void * b);
 static double is_collition_dected(box bounding_box, ray pixel_ray);
+static collition get_bvh_collition_with_distance(bvh_tree* root, ray pixel_ray, double distance);
 
 
 bvh_tree* new_bvh_tree(){
@@ -164,61 +165,86 @@ void distribute_bvh(bvh_tree* root){
 }
   
 collition get_bvh_collition(bvh_tree* root, ray pixel_ray){
-    object_array stack = new_array_with_cap(1000);
-    array_push(&stack, root); 
-    collition result = {.is_hit = false};
     double distance = DBL_MAX;
-    while (stack.length > 0)
+    collition result = {.is_hit = false, .distance = DBL_MAX};
+    double bvh_distance  = is_collition_dected(root->bounding_box, pixel_ray);
+    if(bvh_distance < distance){
+        return get_bvh_collition_with_distance(root, pixel_ray, distance);
+    } else {
+        return result;
+    }
+
+}
+
+static collition get_bvh_collition_with_distance(bvh_tree* root, ray pixel_ray, double distance){
+    collition result = {.is_hit = false, .distance = DBL_MAX};
+    bvh_tree* current = root;
+
+    if(current == NULL){
+        return result;
+    }
+
+    
+    if (current->is_leaf)
     {
-        bvh_tree* current = array_pop(&stack);
-        if(current == NULL){
-            continue;
+        size_t length = current->num_of_objects;
+        object** array = current->object_array;
+        for(size_t i=0; i < length; i++){
+            collition object_collition = get_collition(array[i], pixel_ray);
+            if(object_collition.is_hit && object_collition.distance < distance){
+                result = object_collition;
+            }
+        }
+    } else {
+        double distance_right = DBL_MAX;
+        bool search_right = false;
+        if(current->right != NULL){
+            distance_right = is_collition_dected(current->right->bounding_box, pixel_ray);
+            search_right = (distance_right < distance);
         }
 
-        double bvh_distance  = is_collition_dected(current->bounding_box, pixel_ray);
-        if (current->is_leaf && bvh_distance < distance)
-        {
-            size_t length = current->num_of_objects;
-            object** array = current->object_array;
-            for(size_t i=0; i < length; i++){
-                collition object_collition = get_collition(array[i], pixel_ray);
-                if(object_collition.is_hit && object_collition.distance < distance){
-                    distance = object_collition.distance;
-                    result = object_collition;
-                }
-            }
-        } else if(bvh_distance < distance){
+        double distance_left = DBL_MAX;
+        bool search_left = false;
+        if(current->left != NULL){
+            distance_left = is_collition_dected(current->left->bounding_box, pixel_ray);
+            search_left = (distance_left < distance);
+        }
 
-            double distance_left = DBL_MAX;
-            if(current->left != NULL){
-                distance_left = is_collition_dected(current->bounding_box, pixel_ray);
-            }
-
-            double distance_right = DBL_MAX;
-            if(current->right != NULL){
-                distance_right = is_collition_dected(current->bounding_box, pixel_ray);
-            }
-
+        collition right = result;
+        collition left = result;
+        if(search_right && search_left){
             if(distance_right < distance_left){
-                array_push(&stack, current->left);
-                array_push(&stack, current->right);
+                right = get_bvh_collition_with_distance(current->right, pixel_ray, distance);
+                left = get_bvh_collition_with_distance(current->left, pixel_ray, right.distance);
             } else {
-                array_push(&stack, current->right);
-                array_push(&stack, current->left);
-            }    
+                left = get_bvh_collition_with_distance(current->right, pixel_ray, distance);
+                right = get_bvh_collition_with_distance(current->left, pixel_ray, left.distance);           
+            }
 
-        } 
-    }
-    free(stack.elements);
+            if(right.distance < left.distance){
+                return right;
+            } else {
+                return left;
+            }
+        } else if( search_right ){
+            return get_bvh_collition_with_distance(current->right, pixel_ray, distance);
+        } else if( search_left ){
+            return get_bvh_collition_with_distance(current->left, pixel_ray, distance);
+        }
+    } 
+
     return result;
 }
 
 
 void free_node_object_list(bvh_tree* root){
-    free(root->object_array);
-    root->num_of_objects = 0;
-    root->cap_of_objects = 0;
-    root->object_array = NULL;
+    if(root->object_array != NULL){
+        free(root->object_array);
+        root->num_of_objects = 0;
+        root->cap_of_objects = 0;
+        root->object_array = NULL;
+    }
+
 }
 
 void free_bvh_tree(bvh_tree* root){
