@@ -1,7 +1,7 @@
 #include "json.h"
 
 
-static bool isnumber(char* line, size_t index);
+static bool isnumber(char* line);
 static bool isfraction(char* value);
 static bool ispositive(char* line);
 static bool iswhole(char* value);
@@ -146,7 +146,7 @@ json_object* read_json(char* const file_name){
                             index += strnlen(value, MAX_STRING_SIZE) + 2 - 1;
                             state = SEPARATOR_SEARCH;
                         }
-                    } else if(isnumber(line,index)){
+                    } else if(isnumber(&line[index])){
                         char* value = calloc(MAX_STRING_SIZE,sizeof(char));
                         value[0] = '\0';
                         int read = sscanf(&line[index], "%[0-9.eE+-]", value);
@@ -357,17 +357,17 @@ void free_json(json_object* root){
 }
 
 
-static bool isnumber(char* line, size_t index){
+static bool isnumber(char* line){
 
-    if( isdigit(line[index]) || line[index]=='-') {
+    if( isdigit(*line) || *line=='-') {
         char value[MAX_STRING_SIZE];
         value[0] = '\0';
         char minus[MAX_STRING_SIZE];
         minus[0] = '\0';
         char digit[MAX_STRING_SIZE];
         digit[0] = '\0';
-        sscanf(&line[index], "%[-]%[1-9]%[0-9.eE+-]", minus, digit, value);
-        if( strnlen(minus, MAX_STRING_SIZE) == 1 && strnlen(digit, MAX_STRING_SIZE) == 1){
+        sscanf(line, "%[-]%[1-9]%[0-9.eE+-]", minus, digit, value);
+        if( strnlen(minus, MAX_STRING_SIZE) == 1 && strnlen(digit, MAX_STRING_SIZE) > 0){
             if(value[0] !='\0'){
                 return ispositive(value) || isfraction(value);
             } else {
@@ -375,7 +375,7 @@ static bool isnumber(char* line, size_t index){
             }
         } else {
             value[0] = '\0';
-            sscanf(&line[index], "%[0-9.eE+-]", value);
+            sscanf(line, "%[0-9.eE+-]", value);
             if(value[0] != '\0'){
                 return ispositive(value);
             }

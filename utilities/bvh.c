@@ -78,7 +78,7 @@ void distribute_bvh(bvh_tree* root){
     while (stack.length > 0)
     {
         bvh_tree* current = array_pop(&stack);
-        if(current->num_of_objects < 2){
+        if(current->num_of_objects <= 4){
             continue;
         }
 
@@ -184,9 +184,7 @@ static collition get_bvh_collition_with_distance(bvh_tree* root, ray pixel_ray, 
         return result;
     }
 
-    
-    if (current->is_leaf)
-    {
+    if (current->is_leaf) {
         size_t length = current->num_of_objects;
         object** array = current->object_array;
         for(size_t i=0; i < length; i++){
@@ -195,6 +193,7 @@ static collition get_bvh_collition_with_distance(bvh_tree* root, ray pixel_ray, 
                 result = object_collition;
             }
         }
+        return result;
     } else {
         double distance_right = DBL_MAX;
         bool search_right = false;
