@@ -376,24 +376,28 @@ static list* get_objects(json_object* current, object_array* garbage){
            json_object* repeat =  get_json_object(object_raytraceable, RAYTRACEABLE_REPEAT);
            if(repeat != NULL){
                 size_t repetitions = get_integer(repeat);
-                for(size_t i=0; i<repetitions; i++){
+                for(size_t j=0; j<repetitions; j++){
                     object* sphere_object = get_sphere(object_raytraceable, garbage);
+                    sphere_object->id = (i+1);
                     objects = add_node(objects, sphere_object);
                 }
 
            } else {
                 object* sphere_object = get_sphere(object_raytraceable, garbage);
+                sphere_object->id = (i+1);
                 objects = add_node(objects, sphere_object);
            }
 
         } else if(strncmp(tag->value.string, PLANE_TAG, MAX_STRING_SIZE) == 0){
             object* plane_object = get_plane(object_raytraceable, garbage);
+            plane_object->id = (i+1);
             objects = add_node(objects, plane_object);
         } else if(strncmp(tag->value.string, OBJ, MAX_STRING_SIZE) == 0){
             obj_container container = get_obj(object_raytraceable, garbage);
-            for(size_t i=0; i<container.length; i++){
+            for(size_t j=0; j<container.length; j++){
                 object* triangle = malloc(sizeof(object));
-                *triangle = container.triangles[i];
+                *triangle = container.triangles[j];
+                triangle->id = (i+1);
                 objects = add_node(objects, triangle);
                 array_push(garbage, triangle);
             }

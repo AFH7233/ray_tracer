@@ -10,7 +10,16 @@
     #define REGION_SIZE 10
 #endif
 
-color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB ambient_color, size_t medium);
+typedef struct medium_stack medium_stack;
+struct medium_stack
+{
+    size_t length;
+    size_t* ids;
+    double* elements;
+};
+
+
+color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB ambient_color, medium_stack stack);
 void* render_thread_pixel(void* thread_data);
 
 int main(int argc, char* argv[]){
@@ -41,13 +50,10 @@ int main(int argc, char* argv[]){
     bvh_tree* tree = new_bvh_tree();
 
     list* current = escena.objects;
-    size_t count = 1;
     while (current != NULL)
     {
         if(current->value != NULL){
             object* thing = current->value;
-            thing->id = count;
-            count++;
             transform_object(look_at, thing);
             add_object(tree, thing);
         }
@@ -167,6 +173,14 @@ void* render_thread_pixel(void* thread_data){
     ray_thread* data = (ray_thread*) thread_data;
     data->status = IN_PROGRESS;
     size_t m = 0;
+    medium_stack stack = {
+        .length = 0,
+        .elements = calloc(data->bounces+2, sizeof(double)), // +2 to be sure it should be +1
+        .ids = calloc(data->bounces+2, sizeof(size_t)) // +2 to be sure it should be +1
+    };
+    stack.elements[0] = 1.0;
+    stack.ids[0] = 0;
+    stack.length++;
     for(size_t i = data->start_w; i<data->end_w; i++){
         size_t n =0;
         for(size_t j = data->start_h; j<data->end_h; j++){
@@ -186,7 +200,7 @@ void* render_thread_pixel(void* thread_data){
                     new_normal(x, y, data->distance)
                 );
 
-                ray_color = add_color(ray_color, render_pixel(pixel_ray, data->tree, data->bounces, data->ambient_color, 0));
+                ray_color = add_color(ray_color, render_pixel(pixel_ray, data->tree, data->bounces, data->ambient_color, stack));
             }
 
             ray_color = divide_color(ray_color, data->rays_per_pixel);
@@ -199,11 +213,12 @@ void* render_thread_pixel(void* thread_data){
     }
 
     data->status = FINISHED;
-
+    free(stack.ids);
+    free(stack.elements);
     return data;
 }
 
-color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB ambient_color, size_t medium){
+color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB ambient_color, medium_stack stack){
 
     if(bounces > 0){
         collition hitted_object = get_bvh_collition(root, pixel_ray);
@@ -213,13 +228,11 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB 
             vector surface_point = hitted_object.point;
             normal corrected_normal = dot(surface_normal, pixel_ray.direction) < 0.0 ? surface_normal : multiply(surface_normal,-1.0);
             ray generated_pixel_ray = {};
-            size_t current_medium = medium;
             if(hitted_object.material.is_dielectric){
-                double n1 = 1.0;
+                double n1 = stack.elements[stack.length-1];
                 double n2 = hitted_object.material.refractive_index;
-                if(medium == hitted_object.id){
-                    n1 = hitted_object.material.refractive_index;
-                    n2 = 1.0;
+                if(stack.ids[stack.length-1] == hitted_object.id){ //it wont work for obj each triangle is different object
+                    n2 = stack.elements[stack.length-2];
                 }
                 double n = n1/n2;
                 double cosI = dot(corrected_normal, pixel_ray.direction);
@@ -228,7 +241,13 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB 
                     generated_pixel_ray = specular_ray(corrected_normal, surface_point, pixel_ray, hitted_object.material.angle_spread_reflect);
                 } else {
                     if(hitted_object.material.p_diffract < RAND(0.0,1.0)){
-                        current_medium = (medium == hitted_object.id)? 0:hitted_object.id;
+                        if(stack.ids[stack.length-1] == hitted_object.id){
+                            stack.length--;
+                        } else {
+                            stack.elements[stack.length] = hitted_object.material.refractive_index;
+                            stack.ids[stack.length] = hitted_object.id;
+                            stack.length++;
+                        }
                         double cosT = n*cosI+sqrt(cosT2);
                         normal refracted_direction = to_normal(sub_vector(multiply(pixel_ray.direction, n), multiply(corrected_normal, cosT )));
                         generated_pixel_ray.direction = refracted_direction;
@@ -251,7 +270,7 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB 
             double cos_theta = dot(generated_pixel_ray.direction, corrected_normal);
             color_RGB BRDF = divide_color(hitted_object.material.color, M_PI);
             
-            color_RGB incoming_color = render_pixel(generated_pixel_ray, root, (bounces-1), ambient_color, current_medium);
+            color_RGB incoming_color = render_pixel(generated_pixel_ray, root, (bounces-1), ambient_color, stack);
             color_RGB emmitance = scale_color(hitted_object.material.color, hitted_object.material.emmitance);
             color_RGB result = add_color(emmitance, scale_color(mix_color(incoming_color, BRDF), cos_theta/p));
 
