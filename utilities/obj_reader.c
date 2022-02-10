@@ -100,8 +100,8 @@ obj_container read_obj_file(char* fileName, double scale, properties material, m
         printf("Vertices agregados: %I64d\n", vertex_count);
         printf("Caras agregadas: %I64d\n", face_count);
     #else
-        printf("Vertices agregados: %lld\n", vertex_count);
-        printf("Caras agregadas: %lld\n", face_count);
+        printf("Vertices agregados: %ld\n", vertex_count);
+        printf("Caras agregadas: %ld\n", face_count);
     #endif
 
 

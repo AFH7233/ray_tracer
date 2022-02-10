@@ -151,7 +151,7 @@ int main(int argc, char* argv[]){
             #ifdef _WIN32
                 printf("Finished rendering %I64d regions of %I64d\n", finished_tasks, squares_total);
             #else
-                printf("Finished rendering %lld regions of %lld\n", finished_tasks, squares_total);
+                printf("Finished rendering %ld regions of %ld\n", finished_tasks, squares_total);
             #endif
             
             if(finished_tasks == squares_total){
