@@ -7,7 +7,7 @@
 #include "utilities/logging.h"
 
 #ifndef REGION_SIZE
-    #define REGION_SIZE 10
+    #define REGION_SIZE 100
 #endif
 
 typedef struct medium_stack medium_stack;
