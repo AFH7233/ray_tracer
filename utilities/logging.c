@@ -40,7 +40,13 @@ void print_bvh(bvh_tree* tree, size_t ident){
         for(size_t i=0; i<ident; i++){
             fprintf(stderr, "   "); 
         }
-        fprintf(stderr, "num: %I64u \n", tree->num_of_objects); 
+        
+        #ifdef _WIN32
+            fprintf(stderr, "num: %I64u \n", tree->num_of_objects); 
+        #else
+            fprintf(stderr, "num: %ld \n", tree->num_of_objects); 
+        #endif
+
     } else {
         for(size_t i=0; i<ident; i++){
             fprintf(stderr, "   "); 
