@@ -148,7 +148,12 @@ int main(int argc, char* argv[]){
             }
             available = available >= escena.threads? escena.threads:available+1;
             finished_tasks++;
-            printf("Finished rendering %I64d regions of %I64d\n", finished_tasks, squares_total);
+            #ifdef _WIN32
+                printf("Finished rendering %I64d regions of %I64d\n", finished_tasks, squares_total);
+            #else
+                printf("Finished rendering %lld regions of %lld\n", finished_tasks, squares_total);
+            #endif
+            
             if(finished_tasks == squares_total){
                 break;
             }
