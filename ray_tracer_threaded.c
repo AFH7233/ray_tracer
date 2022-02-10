@@ -7,7 +7,7 @@
 #include "utilities/logging.h"
 
 #ifndef REGION_SIZE
-    #define REGION_SIZE 100
+    #define REGION_SIZE 10
 #endif
 
 typedef struct medium_stack medium_stack;
@@ -245,22 +245,15 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB 
                 if(cosT2 < 0.0){
                     generated_pixel_ray = specular_ray(corrected_normal, surface_point, pixel_ray, hitted_object.material.angle_spread_reflect);
                 } else {
-                    if(hitted_object.material.p_diffract < RAND(0.0,1.0)){
-                        if(stack.ids[stack.length-1] == hitted_object.id){
-                            stack.length--;
-                        } else {
-                            stack.elements[stack.length] = hitted_object.material.refractive_index;
-                            stack.ids[stack.length] = hitted_object.id;
-                            stack.length++;
-                        }
-                        double cosT = n*cosI+sqrt(cosT2);
-                        normal refracted_direction = to_normal(sub_vector(multiply(pixel_ray.direction, n), multiply(corrected_normal, cosT )));
-                        generated_pixel_ray.direction = refracted_direction;
-                        generated_pixel_ray.origin = hitted_object.point;
+                    if(stack.ids[stack.length-1] == hitted_object.id){
+                        stack.length--;
                     } else {
-                        generated_pixel_ray = diffuse_ray(corrected_normal, surface_point);
+                        stack.elements[stack.length] = hitted_object.material.refractive_index;
+                        stack.ids[stack.length] = hitted_object.id;
+                        stack.length++;
                     }
-
+                    double cosT = n*cosI+sqrt(cosT2);
+                    generated_pixel_ray = refract_ray(corrected_normal, surface_point, pixel_ray, hitted_object.material.angle_spread_reflect, cosT, n);
                 }
             } else { 
                 if(hitted_object.material.p_diffract < RAND(0.0,1.0)){

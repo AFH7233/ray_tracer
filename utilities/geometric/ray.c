@@ -24,3 +24,20 @@ ray specular_ray(normal surface_normal, vector surface_point, ray incoming_ray, 
     }
 
 }
+
+ray refract_ray(normal surface_normal, vector surface_point, ray incoming_ray, double angle_spread, double cosT, double n){
+    normal refracted_direction = to_normal(sub_vector(multiply(incoming_ray.direction, n), multiply(surface_normal, cosT )));
+    if(angle_spread < ERROR ){
+        return new_ray(
+            surface_point,
+            refracted_direction
+        );
+    } else {
+        normal refracted_direction_spreaded = random_sphere_direction(refracted_direction, angle_spread);
+        return new_ray(
+            surface_point,
+            refracted_direction_spreaded
+        );
+    }
+
+}
