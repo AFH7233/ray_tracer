@@ -380,9 +380,6 @@ static bool isnumber(char* line){
                 return !is_negative; //This covers 0
             }
         }
-
-
-
     }
     return false;
 }
