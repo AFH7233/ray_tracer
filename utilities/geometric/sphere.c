@@ -18,7 +18,7 @@
         }
         geometry_collition result = {.is_hit = true};
         result.point  = get_ray_point(pixel_ray, t);
-        result.surface_normal = to_normal(sub_vector(result.point, bola->center));
+        result.surface_normal = to_normal(sub_vector(bola->center, result.point));
         result.distance = t;
         return result;
     }
