@@ -359,40 +359,28 @@ void free_json(json_object* root){
 
 static bool isnumber(char* line){
 
-    if( isdigit(*line) || *line=='-') {
+    if( isdigit(line[0]) || line[0]=='-') {
         char value[MAX_STRING_SIZE];
         value[0] = '\0';
-        char minus[MAX_STRING_SIZE];
-        minus[0] = '\0';
-        char digit[MAX_STRING_SIZE];
-        digit[0] = '\0';
-        sscanf(line, "%[-]%[0-9]%[0-9.eE+-]", minus, digit, value);
-        if( strnlen(minus, MAX_STRING_SIZE) == 1 && strnlen(digit, MAX_STRING_SIZE) > 0){
-            if(value[0] !='\0'){
-                return isfraction(value); //This covers -d.44938
-            } else {
-                return iswhole(digit);  //This covers -d
-            }
-        } else {
-            char zeros[MAX_STRING_SIZE];
-            zeros[0] = '\0';
+        char zeros[MAX_STRING_SIZE];
+        zeros[0] = '\0';
+        bool is_negative = line[0] =='-';
+        char* start = is_negative? &line[1] : &line[0];
+        sscanf(start, "%[0]%[0-9.eE+-]", zeros, value);
+        if(zeros[0]  == '\0'){
             value[0] = '\0';
-            sscanf(line, "%[0]%[0-9.eE+-]", zeros, value);
-            if(zeros[0]  == '\0'){
-                value[0] = '\0';
-                sscanf(line, "%[0-9.eE+-]", value);
-                if(value[0] != '\0'){
-                    return ispositive(value); //This covers ddddd.44334
-                }
-            } else if(strnlen(zeros, MAX_STRING_SIZE) == 1){
-                if(value[0] != '\0'){
-                    return isfraction(value); //This covers 0.2916727
-                } else {
-                    return true; //This covers 0
-                }
+            sscanf(start, "%[0-9.eE+-]", value);
+            if(value[0] != '\0'){
+                return ispositive(value); //This covers ddddd.44334
             }
-
+        } else if(strnlen(zeros, MAX_STRING_SIZE) == 1){
+            if(value[0] != '\0'){
+                return isfraction(value); //This covers 0.2916727
+            } else {
+                return !is_negative; //This covers 0
+            }
         }
+
 
 
     }
