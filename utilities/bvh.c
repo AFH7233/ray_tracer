@@ -4,7 +4,7 @@ static int compare_by_x(const void * a, const void * b);
 static int compare_by_y(const void * a, const void * b);
 static int compare_by_z(const void * a, const void * b);
 static double is_collition_dected(box bounding_box, ray pixel_ray);
-static collition get_bvh_collition_with_distance(bvh_tree* root, ray pixel_ray, double distance);
+static collition get_bvh_collition_with_distance(bvh_tree *restrict root, ray pixel_ray, double distance);
 
 
 bvh_tree* new_bvh_tree(){
@@ -164,9 +164,9 @@ void distribute_bvh(bvh_tree* root){
     return;
 }
   
-collition get_bvh_collition(bvh_tree* root, ray pixel_ray){
-    double distance = DBL_MAX;
-    collition result = {.is_hit = false, .distance = DBL_MAX};
+collition get_bvh_collition(bvh_tree *restrict root, ray pixel_ray){
+    double distance = INFINITY;
+    collition result = {.is_hit = false, .distance = INFINITY};
     double bvh_distance  = is_collition_dected(root->bounding_box, pixel_ray);
     if(bvh_distance < distance){
         return get_bvh_collition_with_distance(root, pixel_ray, distance);
@@ -176,8 +176,8 @@ collition get_bvh_collition(bvh_tree* root, ray pixel_ray){
 
 }
 
-static collition get_bvh_collition_with_distance(bvh_tree* root, ray pixel_ray, double distance){
-    collition result = {.is_hit = false, .distance = DBL_MAX};
+static collition get_bvh_collition_with_distance(bvh_tree *restrict root, ray pixel_ray, double distance){
+    collition result = {.is_hit = false, .distance = INFINITY};
     bvh_tree* current = root;
 
     if(current == NULL){
@@ -195,14 +195,14 @@ static collition get_bvh_collition_with_distance(bvh_tree* root, ray pixel_ray, 
         }
         return result;
     } else {
-        double distance_right = DBL_MAX;
+        double distance_right = INFINITY;
         bool search_right = false;
         if(current->right != NULL){
             distance_right = is_collition_dected(current->right->bounding_box, pixel_ray);
             search_right = (distance_right < distance);
         }
 
-        double distance_left = DBL_MAX;
+        double distance_left = INFINITY;
         bool search_left = false;
         if(current->left != NULL){
             distance_left = is_collition_dected(current->left->bounding_box, pixel_ray);
@@ -285,13 +285,13 @@ static double is_collition_dected(box bounding_box , ray pixel_ray){
     // if tmax < 0, ray (line) is intersecting AABB, but the whole AABB is behind us
     if (tmax < 0)
     {
-        return DBL_MAX;
+        return INFINITY;
     }
 
     // if tmin > tmax, ray doesn't intersect AABB
     if (tmin > tmax)
     {
-        return DBL_MAX;
+        return INFINITY;
     }
 
     return tmin < 0.0? tmax : tmin;

@@ -39,6 +39,6 @@
     void free_node_object_list(bvh_tree* root);
     void free_bvh_tree(bvh_tree* root);
     void distribute_bvh(bvh_tree* root);
-    collition get_bvh_collition(bvh_tree* root, ray pixel_ray);
+    collition get_bvh_collition(bvh_tree *restrict root, ray pixel_ray);
     
 #endif

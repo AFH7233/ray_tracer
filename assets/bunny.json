@@ -1,0 +1,179 @@
+{
+    "width" : 320,
+    "height" : 240,
+    "rays": 100,
+    "bounces": 10,
+    "threads" : 20,
+    "output" : {
+        "path": "../out/my_result.bmp"
+    },
+
+    "camera" : {
+        "fov" : 45 ,
+        "up" : {
+            "x" : 0.0,
+            "y" : 1.0,
+            "z" : 0.0
+        },
+        "position" : {
+            "x" : 0.0,
+            "y" : 15.0,
+            "z" : -60.0
+        }
+
+    },
+
+    "focus" : {
+        "x" : 0.0,
+        "y" : 0.0,
+        "z" : 100.0
+    },
+
+    "ambient color" :  {
+        "r" : 0,
+        "g" : 0,
+        "b" : 0
+    },
+
+    "objects" : [
+        {
+            "type" : "OBJ",
+            "scale" : 7.0,
+            "path" : "../assets/bunny.obj",
+            "material" : {
+                "color" : {
+                    "r" : 255,
+                    "g" : 255,
+                    "b" : 255
+                },
+                "emmitance" : 0.0,
+                "probability diffuse" : 0.0,
+                "angle of spread" : 10.0,
+                "refractive index" : 1.45
+            },
+            "transformations" : [
+                { 
+                    "rx": 0.0,
+                    "ry": 180.0,
+                    "rz": 0.0,
+                    "tx": 0.0,
+                    "ty": 0.0,
+                    "tz": 0.0
+                }
+            ]
+        }, 
+        {
+            "type" : "sphere",
+            "repeat" : 10,
+            "radius" : {"min" :1.0, "max" : 2.0},
+            "center" :  {
+                "hemisphere" : {
+                    "radius": 25.0,
+                    "spread" : 90.0,
+                    "normal" :  {                
+                        "x" : 1.0,
+                        "y" : 1.0,
+                        "z" : 1.0
+                    },
+                    "center" : {                
+                        "x" : 0.0,
+                        "y" : 0.0,
+                        "z" : 0.0
+                    }
+                }
+            },
+            "material" : {
+                "color" : {
+                    "r" : {"min" : 0.0, "max" : 255.0},
+                    "g" : {"min" : 0.0, "max" : 255.0},
+                    "b" : {"min" : 0.0, "max" : 255.0}
+                },
+                "emmitance" : 0.0,
+                "probability diffuse" : {"min" : 0.5, "max" : 1.0},
+                "angle of spread" : {"min" : 5.0, "max" : 20.0}
+            } 
+        },
+        {
+            "type" : "sphere",
+            "repeat" : 10,
+            "radius" : {"min" :1.0, "max" : 2.0},
+            "center" :  {
+                "hemisphere" : {
+                    "radius": 25.0,
+                    "spread" : 90.0,
+                    "normal" :  {                
+                        "x" : -1.0,
+                        "y" : 1.0,
+                        "z" : 1.0
+                    },
+                    "center" : {                
+                        "x" : 0.0,
+                        "y" : 0.0,
+                        "z" : 0.0
+                    }
+                }
+            },
+            "material" : {
+                "color" : {
+                    "r" : {"min" : 0.0, "max" : 255.0},
+                    "g" : {"min" : 0.0, "max" : 255.0},
+                    "b" : {"min" : 0.0, "max" : 255.0}
+                },
+                "emmitance" : 0.0,
+                "probability diffuse" : {"min" : 0.5, "max" : 1.0},
+                "angle of spread" : {"min" : 5.0, "max" : 20.0}
+            } 
+        },    
+        {
+            "type" : "plane",
+            "radius" : 500.0,
+            "center" :  {
+                "x" : 0.0,
+                "y" : 0.0,
+                "z" : 0.0
+            },
+            "normal" :  {
+                "x" : 0.0,
+                "y" : 1.0,
+                "z" : 0.0
+            },
+            "material" : {
+                "color" : {
+                    "r" : 125,
+                    "g" : 125,
+                    "b" : 125
+                },
+                "emmitance" : 0.0,
+                "probability diffuse" : 1.0,
+                "angle of spread" : 10.0
+            } 
+        },
+        {
+            "id" : "light",
+            "type" : "plane",
+            "radius" : 30.0,
+            "center" :  {
+                "x" : -30.0,
+                "y" : 65.0,
+                "z" : 0.0
+            },
+            "normal" :  {
+                "x" : 1.0,
+                "y" : -1.0,
+                "z" : 0.0
+            },
+            "material" : {
+                "color" : {
+                    "r" : 255,
+                    "g" : 255,
+                    "b" : 255
+                },
+                "emmitance" : 5.0,
+                "probability diffuse" : 1.0,
+                "angle of spread" : 10.0,
+                "absorbing" : true
+            } 
+        }
+    ]
+}
+
