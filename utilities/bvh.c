@@ -189,7 +189,7 @@ static collition get_bvh_collition_with_distance(bvh_tree *restrict root, ray pi
         object** array = current->object_array;
         for(size_t i=0; i < length; i++){
             collition object_collition = get_collition(array[i], pixel_ray);
-            if(object_collition.is_hit && object_collition.distance < distance){
+            if(object_collition.is_hit && isless(object_collition.distance, distance)){
                 result = object_collition;
             }
         }
@@ -199,20 +199,20 @@ static collition get_bvh_collition_with_distance(bvh_tree *restrict root, ray pi
         bool search_right = false;
         if(current->right != NULL){
             distance_right = is_collition_dected(current->right->bounding_box, pixel_ray);
-            search_right = (distance_right < distance);
+            search_right = isless(distance_right, distance); 
         }
 
         double distance_left = INFINITY;
         bool search_left = false;
         if(current->left != NULL){
             distance_left = is_collition_dected(current->left->bounding_box, pixel_ray);
-            search_left = (distance_left < distance);
+            search_left = isless(distance_left, distance); 
         }
 
         collition right = result;
         collition left = result;
         if(search_right && search_left){
-            if(distance_right < distance_left){
+            if(isless(distance_right, distance_left)){
                 right = get_bvh_collition_with_distance(current->right, pixel_ray, distance);
                 left = get_bvh_collition_with_distance(current->left, pixel_ray, right.distance);
             } else {
