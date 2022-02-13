@@ -216,8 +216,8 @@ static collition get_bvh_collition_with_distance(bvh_tree *restrict root, ray pi
                 right = get_bvh_collition_with_distance(current->right, pixel_ray, distance);
                 left = get_bvh_collition_with_distance(current->left, pixel_ray, right.distance);
             } else {
-                left = get_bvh_collition_with_distance(current->right, pixel_ray, distance);
-                right = get_bvh_collition_with_distance(current->left, pixel_ray, left.distance);           
+                left = get_bvh_collition_with_distance(current->left, pixel_ray, distance);
+                right = get_bvh_collition_with_distance(current->right, pixel_ray, left.distance);           
             }
 
             if(right.distance < left.distance){
