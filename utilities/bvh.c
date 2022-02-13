@@ -217,7 +217,7 @@ static collition get_bvh_collition_with_distance(bvh_tree *restrict root, ray pi
                 left = get_bvh_collition_with_distance(current->left, pixel_ray, right.distance);
             } else {
                 left = get_bvh_collition_with_distance(current->left, pixel_ray, distance);
-                right = get_bvh_collition_with_distance(current->right, pixel_ray, left.distance);           
+                right = get_bvh_collition_with_distance(current->right, pixel_ray, left.distance);         
             }
 
             if(right.distance < left.distance){
@@ -294,7 +294,7 @@ static double is_collition_dected(box bounding_box , ray pixel_ray){
         return INFINITY;
     }
 
-    return tmin < 0.0? tmax : tmin;
+    return tmin;
 }
 
 static int compare_by_x(const void * a, const void * b){
