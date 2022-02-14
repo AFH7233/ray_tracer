@@ -188,12 +188,12 @@ obj_container read_obj_file(char* fileName, double scale, properties material, m
 }
 
 static void center_obj(vector* arr, size_t length){
-    double min_x = DBL_MAX;
-    double min_y = DBL_MAX;
-    double min_z = DBL_MAX;
-    double max_x = DBL_MIN;
-    double max_y = DBL_MIN;
-    double max_z = DBL_MIN;
+    double min_x = INFINITY;
+    double min_y = INFINITY;
+    double min_z = INFINITY;
+    double max_x = -INFINITY;
+    double max_y = -INFINITY;
+    double max_z = -INFINITY;
     for(size_t i=0; i<length; i++){
         min_x = fmin(min_x, arr[i].x);
         min_y = fmin(min_y, arr[i].y);
