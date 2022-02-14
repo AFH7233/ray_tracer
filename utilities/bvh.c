@@ -23,12 +23,12 @@ bvh_tree* new_bvh_tree(){
     root->right = NULL;
     root->eje = X;
     root->bounding_box = (box) {
-        .min_x = DBL_MAX,
-        .min_y = DBL_MAX,
-        .min_z = DBL_MAX,
-        .max_x = DBL_MIN,
-        .max_y = DBL_MIN,
-        .max_z = DBL_MIN
+        .min_x = INFINITY,
+        .min_y = INFINITY,
+        .min_z = INFINITY,
+        .max_x = -INFINITY,
+        .max_y = -INFINITY,
+        .max_z = -INFINITY
 
     };
 
@@ -83,7 +83,7 @@ void distribute_bvh(bvh_tree* root){
         }
 
         current->is_leaf = false;
-        double min_area = DBL_MAX;
+        double min_area = INFINITY;
         size_t length = current->num_of_objects;
         double* areas = calloc(length, sizeof(double));
         axis winner = X;
@@ -117,7 +117,7 @@ void distribute_bvh(bvh_tree* root){
                 double right_area = areas[length-1] - areas[i];
 
                 double thing = (i + 1.0)*(left_area) + (length-i-1.0)*(right_area);
-                if(thing < min_area){
+                if(isless(thing, min_area)){
                     cut = i;
                     min_area = thing;
                     winner = ejes[m];
