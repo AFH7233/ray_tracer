@@ -214,13 +214,15 @@ static collition get_bvh_collition_with_distance(bvh_tree *restrict root, ray pi
         if(search_right && search_left){
             if(isless(distance_right, distance_left)){
                 right = get_bvh_collition_with_distance(current->right, pixel_ray, distance);
-                left = get_bvh_collition_with_distance(current->left, pixel_ray, right.distance);
+                double next_distance = isless(right.distance, distance) ? right.distance : distance;
+                left = get_bvh_collition_with_distance(current->left, pixel_ray, next_distance);
             } else {
                 left = get_bvh_collition_with_distance(current->left, pixel_ray, distance);
-                right = get_bvh_collition_with_distance(current->right, pixel_ray, left.distance);         
+                double next_distance = isless(left.distance, distance) ? left.distance : distance;
+                right = get_bvh_collition_with_distance(current->right, pixel_ray, next_distance);         
             }
 
-            if(right.distance < left.distance){
+            if(isless(right.distance, left.distance)){
                 return right;
             } else {
                 return left;
