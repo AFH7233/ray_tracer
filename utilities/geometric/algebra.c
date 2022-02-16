@@ -5,7 +5,11 @@ double dot(vector a, vector b){
 }
 
 vector cross(vector a, vector b){
-    vector c = {};
+    vector c = {
+        .x = 0,
+        .y = 0,
+        .z = 0
+    };
     c.x = (a.y*b.z) - (a.z*b.y);
     c.y = (a.z*b.x) - (a.x*b.z);
     c.z = (a.x*b.y) - (a.y*b.x);
@@ -15,7 +19,11 @@ vector cross(vector a, vector b){
 
 vector normalize(vector a){
     double norm = sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
-    vector c = {};
+    vector c = {
+        .x = 0,
+        .y = 0,
+        .z = 0
+    };
     c.x = a.x/norm;
     c.y = a.y/norm;
     c.z = a.z/norm;
@@ -28,7 +36,11 @@ double norma(vector a){
 }
 
 vector scale_vector(vector a, double k){
-    vector c = {};
+    vector c = {
+        .x = 0,
+        .y = 0,
+        .z = 0
+    };
     c.x = a.x*k;
     c.y = a.y*k;
     c.z = a.z*k;
@@ -37,7 +49,11 @@ vector scale_vector(vector a, double k){
 }
 
 vector add_vector(vector a, vector b){
-    vector c = {};
+    vector c = {
+        .x = 0,
+        .y = 0,
+        .z = 0
+    };
     c.x = a.x + b.x;
     c.y = a.y + b.y;
     c.z = a.z + b.z;
@@ -46,7 +62,11 @@ vector add_vector(vector a, vector b){
 }
 
 vector sub_vector(vector a, vector b){
-    vector c = {};
+    vector c = {
+        .x = 0,
+        .y = 0,
+        .z = 0
+    };
     c.x = a.x - b.x;
     c.y = a.y - b.y;
     c.z = a.z - b.z;
@@ -63,7 +83,11 @@ vector to_normal(vector a){
 
 
 vector trasnform(matrix matriz, vector a){
-    vector c = {};
+    vector c = {
+        .x = 0,
+        .y = 0,
+        .z = 0
+    };
     c.x = matriz.elements[0][0]*a.x + matriz.elements[0][1]*a.y + matriz.elements[0][2]*a.z + matriz.elements[0][3]*a.w;
     c.y = matriz.elements[1][0]*a.x + matriz.elements[1][1]*a.y + matriz.elements[1][2]*a.z + matriz.elements[1][3]*a.w;
     c.z = matriz.elements[2][0]*a.x + matriz.elements[2][1]*a.y + matriz.elements[2][2]*a.z + matriz.elements[2][3]*a.w;
@@ -98,7 +122,7 @@ normal random_sphere_direction(normal direction, double cone_angle_degree) {
 
 
 matrix mul_matrix(matrix a, matrix b){
-    matrix c = { .elements = {} };
+    matrix c = { .elements = {{0}} };
     for(size_t i=0; i<4; i++){
         for(size_t j=0; j<4; j++){
             for(size_t k=0; k<4; k++){

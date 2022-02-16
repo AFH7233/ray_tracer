@@ -6,7 +6,7 @@ An example of the output can be found ond `out\expensive.png`.
 ## How to build
 
 1. Install GNU make for Mac OS or LInux, in Windows mingw can be used.
-2. Go to the `build` folder and exectue `make Linux` or `make Windows` 
+2. Go to the `build` folder and exectue `make linux` or `make windows` 
 
 ## How to use it
 

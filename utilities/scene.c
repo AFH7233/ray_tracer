@@ -229,7 +229,7 @@ static vector get_vector(json_object* current, bool is_normal){
         exit(EXIT_FAILURE);
     }
 
-    vector point = {};
+    vector point = origin_vector;
 
     if(is_normal) {
         point = new_normal(0.0,1.0,0.0);
@@ -253,7 +253,11 @@ static color_RGB get_color(json_object* current){
         fprintf(stderr, "Cannot parse color \n");
         exit(EXIT_FAILURE);
     }
-    color_RGB color = {};
+    color_RGB color = {
+        .red = 0,
+        .green = 0,
+        .blue = 0
+    };
 
     color.red = get_double(get_json_object(current, COLOR_R));
     if(color.red > (255.0)){
@@ -292,7 +296,9 @@ static properties get_material(json_object* current){
         fprintf(stderr, "Cannot parse material \n");
         exit(EXIT_FAILURE);
     }
-    properties material = {};
+    properties material = {
+        .is_absorbing = false,
+    };
 
     material.color = get_color(get_json_object(current, COLOR));
     material.emmitance = get_double(get_json_object(current, MATERIAL_EMMITANCE)) + COLOR_ERROR;
@@ -332,7 +338,11 @@ static camera get_camera(json_object* current){
         fprintf(stderr, "Cannot parse camera \n");
         exit(EXIT_FAILURE);
     }
-    camera camara = {};
+    camera camara = {
+        .fov = 90,
+        .position = origin_vector,
+        .up = origin_vector
+    };
 
     camara.fov = get_double(get_json_object(current, CAMERA_FOV));
     camara.position = get_vector_or_hemisphere(get_json_object(current, CAMERA_POSITION), false);  
@@ -490,7 +500,10 @@ static obj_container get_obj(json_object* current, object_array* garbage){
         }
         
     }
-    obj_container container = {};
+    obj_container container = {
+        .length = 0,
+        .triangles = NULL
+    };
     if(path->type == JSON_STRING){
         container = read_obj_file(path->value.string, scale, polygon_material, transformation, garbage);
     } else {

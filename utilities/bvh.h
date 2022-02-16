@@ -18,8 +18,8 @@
 
     //I don't like it allocates memory, but Imma fix that some day
 
-    typedef enum axis axis;
     enum axis {X, Y, Z};
+    typedef enum axis axis;
 
     typedef struct bvh_tree bvh_tree;
     struct bvh_tree

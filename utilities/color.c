@@ -1,7 +1,11 @@
 #include "color.h"
 
 color_RGB add_color(color_RGB a, color_RGB b){
-    color_RGB c = {};
+    color_RGB c = { 
+        .red = 0,
+        .green = 0,
+        .blue = 0
+    };
     c.red = a.red + b.red;
     c.green = a.green + b.green;
     c.blue = a.blue + b.blue;
@@ -9,7 +13,11 @@ color_RGB add_color(color_RGB a, color_RGB b){
 }
 
 color_RGB mix_color(color_RGB a, color_RGB b){
-    color_RGB c = {};
+    color_RGB c = { 
+        .red = 0,
+        .green = 0,
+        .blue = 0
+    };
     c.red = a.red * b.red;
     c.red = isnan(c.red) ? COLOR_ERROR : c.red;
     c.green = a.green * b.green;
@@ -21,7 +29,11 @@ color_RGB mix_color(color_RGB a, color_RGB b){
 
 color_RGB normalize_color(color_RGB a){
     double norm = sqrt((a.red*a.red) + (a.blue*a.blue) + (a.green*a.green));
-    color_RGB c = {};
+    color_RGB c = { 
+        .red = 0,
+        .green = 0,
+        .blue = 0
+    };
     c.red = a.red/norm;
     c.green = a.green/norm;
     c.blue = a.blue/norm;
@@ -29,7 +41,11 @@ color_RGB normalize_color(color_RGB a){
 }
 
 color_RGB scale_color(color_RGB a, double k){
-    color_RGB c = {};
+    color_RGB c = { 
+        .red = 0,
+        .green = 0,
+        .blue = 0
+    };
     c.red = a.red * k;
     c.red = isnan(c.red) ? COLOR_ERROR : c.red;
     c.green = a.green * k;

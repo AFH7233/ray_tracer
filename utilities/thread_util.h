@@ -5,8 +5,8 @@
     #include "bvh.h"
     #include "image.h"
 
-    typedef enum thread_status thread_status;
     enum thread_status { IDLE, IN_PROGRESS, FINISHED, PROCESSED};
+    typedef enum thread_status thread_status;
 
     typedef struct ray_thread ray_thread;
     struct  ray_thread

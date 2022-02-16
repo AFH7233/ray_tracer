@@ -232,7 +232,7 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB 
             normal surface_normal = hitted_object.surface_normal;
             vector surface_point = hitted_object.point;
             normal corrected_normal = dot(surface_normal, pixel_ray.direction) < 0.0 ? surface_normal : multiply(surface_normal,-1.0);
-            ray generated_pixel_ray = {};
+            ray generated_pixel_ray = { .direction = origin_vector, .origin = origin_vector};
             if(hitted_object.material.is_dielectric){
                 double n1 = stack.elements[stack.length-1];
                 double n2 = hitted_object.material.refractive_index;
