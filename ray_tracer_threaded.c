@@ -283,7 +283,5 @@ color_RGB render_pixel(ray pixel_ray, bvh_tree* root, size_t bounces, color_RGB 
     } else {
             //return new_color_RGB( 0.5, 0.7, 1.0);
             return  ambient_color; 
-        } 
-
-
+    } 
 }

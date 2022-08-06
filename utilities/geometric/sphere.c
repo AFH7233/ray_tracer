@@ -47,12 +47,3 @@ box get_sphere_bounding_box(sphere *restrict  bola){
 double get_sphere_area(sphere *restrict  bola){
     return 4*M_PI*bola->radio*bola->radio;
 }
-
-/* sphere transform_sphere(matrix transformation, sphere bola){
-    vector moved_center = trasnform(transformation, bola.center);
-    sphere moved_sphere = new_sphere(
-        bola.radio,
-        moved_center
-    );
-    return moved_sphere;
- }*/

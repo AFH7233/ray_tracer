@@ -3,3 +3,6 @@ windows:
 
 linux:
 	gcc -O3 ../ray_tracer_threaded.c  ../utilities/*.c  ../utilities/geometric/*.c  -lm -lpthread -o ../out/ray_tracer_threaded.out  -Wall -pedantic -std=c11
+
+macos:
+	clang -O3 ../ray_tracer_threaded.c  ../utilities/*.c  ../utilities/geometric/*.c  -lm -lpthread -o ../out/ray_tracer_threaded.out  -Wall -pedantic -std=c11

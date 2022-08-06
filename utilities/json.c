@@ -682,4 +682,3 @@ static bool set_json_value(json_object* object, list* current){
     }
     return false;
 }   
-
