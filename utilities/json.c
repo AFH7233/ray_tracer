@@ -300,7 +300,7 @@ json_object* read_json(char* const file_name){
     return root;
 }
 
-json_object* get_json_object(json_object* root, char* key){
+json_object* get_json_object(json_object root[1], char* key){
     if(root->type == JSON_OBJECT){
        json_object* result = get(root->map, key);
        if(result == NULL){
@@ -312,7 +312,7 @@ json_object* get_json_object(json_object* root, char* key){
         return NULL;
     }
 }
-json_object* get_json_element(json_object* root, size_t index){
+json_object* get_json_element(json_object root[1], size_t index){
     if(root->type == JSON_ARRAY){
         if(index < root->length){
             return root->map[index];
@@ -327,7 +327,7 @@ json_object* get_json_element(json_object* root, size_t index){
 
 
 
-void free_json(json_object* root){
+void free_json(json_object root[1]){
     
     if(root == NULL){
         return;

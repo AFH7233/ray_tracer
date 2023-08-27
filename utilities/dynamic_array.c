@@ -1,6 +1,6 @@
 #include "dynamic_array.h"
 
-object_array new_array(){
+object_array new_array(void){
     void** elements = calloc(10, sizeof(unsigned char*));
     object_array arr = {
         .cap = 10,

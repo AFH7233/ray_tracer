@@ -34,6 +34,6 @@
         object* triangles;
     };
 
-    obj_container read_obj_file(char* fileName, double scale, properties material, matrix transformation, object_array* garbage);
+    obj_container read_obj_file(char fileName[1], double scale, properties material, matrix transformation, object_array* garbage);
     void free_obj(obj_container arr);
 #endif

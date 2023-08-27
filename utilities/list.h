@@ -20,7 +20,7 @@
         void* bin;
     };
     
-    list* new_list();
+    list* new_list(void);
     list* add_node(list* head,void* value);
     list* push_node(list* head, void* value);
     void free_list(list* head);

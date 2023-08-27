@@ -34,7 +34,7 @@
         axis eje;
     };
 
-    bvh_tree* new_bvh_tree();
+    bvh_tree* new_bvh_tree(void);
     void add_object(bvh_tree* root, object* object_3d);
     void free_node_object_list(bvh_tree* root);
     void free_bvh_tree(bvh_tree* root);

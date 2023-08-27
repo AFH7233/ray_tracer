@@ -1,6 +1,6 @@
 #include "list.h"
 
-list* new_list(){
+list* new_list(void){
     list* head  = malloc(sizeof(list));
     if(head == NULL){
         fprintf(stderr, "No memory \n");

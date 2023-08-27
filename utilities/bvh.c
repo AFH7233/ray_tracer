@@ -7,7 +7,7 @@ static double is_collition_dected(box bounding_box, ray pixel_ray);
 static collition get_bvh_collition_with_distance(bvh_tree *restrict root, ray pixel_ray, double distance);
 
 
-bvh_tree* new_bvh_tree(){
+bvh_tree* new_bvh_tree(void){
     bvh_tree* root = malloc(sizeof(bvh_tree));
     
     root->is_leaf = true;

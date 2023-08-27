@@ -4,7 +4,7 @@ static list_face* triangulate_convex_faces(list_face* head_face);
 static normal* create_vertex_normals(object* triangles, polygon* cloud, size_t vertex_count, size_t face_count, object_array* garbage);
 static void center_obj(vector* arr, size_t length);
 
-obj_container read_obj_file(char* fileName, double scale, properties material, matrix transformation, object_array* garbage){
+obj_container read_obj_file(char fileName[1], double scale, properties material, matrix transformation, object_array* garbage){
     FILE *file = fopen(fileName, "r");
     if(file == NULL){
     fprintf(stderr, "No pude leer el archivo\n");
