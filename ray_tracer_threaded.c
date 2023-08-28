@@ -136,15 +136,11 @@ int main(int argc, char* argv[]){
             available--;
         } else if(data[k].status == FINISHED){
             data[k].status = PROCESSED;
-            size_t m = 0;
-            for(size_t i=data[k].start_w; i<data[k].end_w; i++){
-                size_t n = 0;
-                for(size_t j=data[k].start_h; j<data[k].end_h; j++){
+            for(size_t i=data[k].start_w, m = 0; i<data[k].end_w; i++, m++){
+                for(size_t j=data[k].start_h, n = 0; j<data[k].end_h; j++, n++){
                     pixel_color color = get_pixel(data[k].strip,m,n);
                     put_pixel(screen, i, j, color);
-                    n++;
                 }
-                m++;
             }
             available = available >= escena.threads? escena.threads:available+1;
             finished_tasks++;
