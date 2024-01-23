@@ -33,8 +33,8 @@ geometry_collition get_plane_collition(plane *restrict circle, ray pixel_ray){
 
 
 void transform_plane_with_mutation(matrix transformation, plane* circle){
-    circle->center = trasnform(transformation, circle->center);
-    circle->surface_normal = trasnform(transformation, circle->surface_normal);
+    circle->center = transform(transformation, circle->center);
+    circle->surface_normal = transform(transformation, circle->surface_normal);
 }
 
 

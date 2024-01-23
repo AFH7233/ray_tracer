@@ -82,7 +82,7 @@ vector to_normal(vector a){
 }
 
 
-vector trasnform(matrix matriz, vector a){
+vector transform(matrix matriz, vector a){
     vector c = {
         .x = 0,
         .y = 0,

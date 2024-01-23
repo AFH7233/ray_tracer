@@ -47,7 +47,7 @@
     vector to_normal(vector a);
     double norma(vector a);
 
-    vector trasnform(matrix matriz, vector a);
+    vector transform(matrix matriz, vector a);
     matrix mul_matrix(matrix a, matrix b);
 
     matrix get_transformation(double rx, double ry, double rz, double tx, double ty, double tz);

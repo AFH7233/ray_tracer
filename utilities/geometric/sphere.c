@@ -27,7 +27,7 @@
 
 
 void transform_sphere_with_mutation(matrix transformation, sphere *restrict  bola){
-    bola->center = trasnform(transformation, bola->center);
+    bola->center = transform(transformation, bola->center);
 }
 
 

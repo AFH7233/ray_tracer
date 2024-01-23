@@ -173,8 +173,8 @@ obj_container read_obj_file(char fileName[1], double scale, properties material,
     center_obj(vertices, vertex_count);
 
     for(size_t i=0; i< vertex_count; i++){
-        cloud->vertices[i] = trasnform(transformation, cloud->vertices[i]);
-        cloud->normals[i] = trasnform(transformation, cloud->normals[i]);
+        cloud->vertices[i] = transform(transformation, cloud->vertices[i]);
+        cloud->normals[i] = transform(transformation, cloud->normals[i]);
     } 
     
     printf("Added normals\n");
