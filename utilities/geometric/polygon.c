@@ -75,7 +75,6 @@ void transform_face_with_mutation(matrix transformation, face* surface){
         }
         cloud->is_transformed = true;
     }
-
 }
 
 box get_face_bounding_box(face *restrict  surface){
@@ -113,4 +112,62 @@ double get_face_area(face *restrict  surface){
     vector total = cross(edge_ba, edge_ca);
     double areaTotal = norma(total)/2.0;
     return areaTotal;
+}
+
+geometry_collition get_face_collition_face_normal(face *restrict surface, ray pixel_ray){
+    geometry_collition result = {.is_hit=false};
+
+    polygon* cloud = surface->cloud;
+    vector vertex_a = cloud->vertices[surface->indices_vertex[0]];
+    vector vertex_b = cloud->vertices[surface->indices_vertex[1]];
+    vector vertex_c = cloud->vertices[surface->indices_vertex[2]];
+
+    vector edge_ba = sub_vector(vertex_b, vertex_a);
+    vector edge_ca = sub_vector(vertex_c, vertex_a);
+    vector h = cross(pixel_ray.direction, edge_ca);
+    double a = dot(edge_ba,h);
+    if(fabs(a) < ERROR){
+        return result;
+    }
+
+    double f = 1.0/a;
+    vector s = sub_vector(pixel_ray.origin, vertex_a);
+    double u = f * dot(s, h);
+    if( u < 0.0 || u > 1.0){
+        return result;
+    }
+
+    vector q = cross(s, edge_ba);
+    double v = f * dot(pixel_ray.direction, q);
+    if( v < 0.0 || (u + v) > 1.0){
+        return result;
+    }
+
+    double distance = f * dot(edge_ca, q);
+    if(distance > ERROR)
+    {
+        result.distance = distance;
+        result.is_hit = true;
+        result.point = get_ray_point(pixel_ray, distance);
+    } else {
+        return result;
+    }
+
+    result.surface_normal = cloud->normals[surface->index_normal];
+    
+    return result;  
+}
+
+void transform_face_with_mutation_face_normal(matrix transformation, face* surface){
+    polygon* cloud = surface->cloud;
+    if(!cloud->is_transformed){
+        for(size_t i=0; i< cloud->num_vertices; i++){
+            cloud->vertices[i] = trasnform(transformation, cloud->vertices[i]);
+        }
+        size_t num_faces = cloud->num_vertices/3;
+        for(size_t i=0; i < num_faces; i++){
+            cloud->normals[i] = trasnform(transformation, cloud->normals[i]);
+        }
+        cloud->is_transformed = true;
+    }
 }

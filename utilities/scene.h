@@ -8,6 +8,8 @@
     #include "object.h"
     #include "dynamic_array.h"
     #include "obj_reader.h"
+    #include "stl_reader.h"
+
 
 
     #define RAYTRACEABLE_TYPE  "type"
@@ -88,8 +90,16 @@
         list* objects;
         char* output_path;
     };
-    
 
+    typedef struct  mesh_container mesh_container;
+    struct mesh_container
+    {
+        size_t length;
+        object* triangles;
+    };
+    
+    enum file_type_surface {FILE_TYPE_SURFACE_OBJ, FILE_TYPE_SURFACE_STL, FILE_TYPE_SURFACE_UNKNOWN};
+    typedef enum file_type_surface file_type_surface;
 
     scene read_scene(char* const file_name, object_array* garbage);
 #endif

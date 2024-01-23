@@ -14,7 +14,8 @@ static properties get_material(json_object* current);
 static list* get_objects(json_object* current, object_array* garbage);
 static object* get_sphere(json_object* current, object_array* garbage);
 static object* get_plane(json_object* current, object_array* garbage);
-static obj_container get_obj(json_object* current, object_array* garbage);
+static mesh_container get_obj(json_object* current, object_array* garbage);
+static file_type_surface get_file_type(char* file_name);
 
 scene read_scene(char* const file_name, object_array* garbage){
     json_object* json = read_json(file_name);
@@ -403,7 +404,7 @@ static list* get_objects(json_object* current, object_array* garbage){
             plane_object->id = (i+1);
             objects = add_node(objects, plane_object);
         } else if(strncmp(tag->value.string, OBJ, MAX_STRING_SIZE) == 0){
-            obj_container container = get_obj(object_raytraceable, garbage);
+            mesh_container container = get_obj(object_raytraceable, garbage);
             for(size_t j=0; j<container.length; j++){
                 object* triangle = malloc(sizeof(object));
                 *triangle = container.triangles[j];
@@ -480,7 +481,7 @@ static object* get_plane(json_object* current, object_array* garbage){
     return plane_object;
 }
 
-static obj_container get_obj(json_object* current, object_array* garbage){
+static mesh_container get_obj(json_object* current, object_array* garbage){
     if(current == NULL || current->type != JSON_OBJECT){
         fprintf(stderr, "Cannot parse objects \n");
         exit(EXIT_FAILURE);
@@ -500,15 +501,57 @@ static obj_container get_obj(json_object* current, object_array* garbage){
         }
         
     }
-    obj_container container = {
+    mesh_container container = {
         .length = 0,
         .triangles = NULL
     };
     if(path->type == JSON_STRING){
-        container = read_obj_file(path->value.string, scale, polygon_material, transformation, garbage);
+        file_type_surface file_type = get_file_type(path->value.string);
+        switch(file_type) {
+            case FILE_TYPE_SURFACE_OBJ: {
+                obj_container obj_file = read_obj_file(path->value.string, scale, polygon_material, transformation, garbage);
+                container.length = obj_file.length;
+                container.triangles = obj_file.triangles;
+                break;
+            }
+            case FILE_TYPE_SURFACE_STL: {
+                stl_container stl_file = read_stl_file(path->value.string, scale, polygon_material, transformation);
+                container.length = stl_file.length;
+                container.triangles = stl_file.triangles;
+                break;
+            }
+            default:
+                fprintf(stderr, "Cannot parse path \n");
+                exit(EXIT_FAILURE);
+        }
+        
     } else {
         fprintf(stderr, "Cannot parse path \n");
         exit(EXIT_FAILURE);
     }
     return container;
+}
+
+
+static file_type_surface get_file_type(char* file_name){
+    size_t point = 0;
+    size_t length = strnlen(file_name, MAX_STRING_SIZE);
+    for(size_t i=0; i<length; i++){
+        if(file_name[i] == '.') {
+            point = i;
+        }
+    }
+    
+    if(length == MAX_STRING_SIZE){
+        return FILE_TYPE_SURFACE_UNKNOWN;
+    }
+
+    if(strncmp(&file_name[point+1], "obj", 3) == 0) {
+        return FILE_TYPE_SURFACE_OBJ;
+    }
+
+    if(strncmp(&file_name[point+1], "stl", 3) == 0) {
+        return FILE_TYPE_SURFACE_STL;
+    }
+    return FILE_TYPE_SURFACE_UNKNOWN;
 }
