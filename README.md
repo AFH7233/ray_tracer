@@ -279,7 +279,8 @@ random values for colors and positions.
 
 ```
 
-- *obj files* : It support some obj files, it must have a path to the file, a material, a scale parameter and it can optionally include an array of thansformations that will be applied in order.
+- *obj files* : It support some obj files, it must have a path to the file, a material, a scale parameter and it can optionally include an array of transformations that will be applied in order.
+- *stl files* : It support binary stl files, it must have a path to the file, a material, a scale parameter and it can optionally include an array of transformations that will be applied in order.
 
 ```
 {
