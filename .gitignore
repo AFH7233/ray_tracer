@@ -1,8 +1,13 @@
 *.exe
 *.bmp
 *.png
+*.json
+*.stl
+*.DS_Store
 **/.vscode
 *.obj
 **/out
 !expensive.png
 !bunny.obj
+!example.json
+!bunny.json
