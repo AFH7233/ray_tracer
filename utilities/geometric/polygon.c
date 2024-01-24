@@ -162,11 +162,11 @@ void transform_face_with_mutation_face_normal(matrix transformation, face* surfa
     polygon* cloud = surface->cloud;
     if(!cloud->is_transformed){
         for(size_t i=0; i< cloud->num_vertices; i++){
-            cloud->vertices[i] = trasnform(transformation, cloud->vertices[i]);
+            cloud->vertices[i] = transform(transformation, cloud->vertices[i]);
         }
         size_t num_faces = cloud->num_vertices/3;
         for(size_t i=0; i < num_faces; i++){
-            cloud->normals[i] = trasnform(transformation, cloud->normals[i]);
+            cloud->normals[i] = transform(transformation, cloud->normals[i]);
         }
         cloud->is_transformed = true;
     }

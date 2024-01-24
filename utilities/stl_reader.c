@@ -29,24 +29,26 @@ stl_container read_stl_file(const char* file_name, double scale, properties mate
     size_t vertices_index = 0;
     size_t normals_index = 0;
     for(size_t i=0; i<faces_size; i++){
-        fseek(file, 12, SEEK_CUR);
         float x, y, z;
         fread(&x, sizeof(float), 1, file);
         fread(&y, sizeof(float), 1, file);
         fread(&z, sizeof(float), 1, file);
-        vector vertex_1 = new_vector(x, y, z);
+        normal face_normal = new_normal(x, y, z);
 
         fread(&x, sizeof(float), 1, file);
         fread(&y, sizeof(float), 1, file);
         fread(&z, sizeof(float), 1, file);
-        vector vertex_2 = new_vector(x, y, z);
+        vector vertex_1 = new_vector(x*scale, y*scale, z*scale);
 
         fread(&x, sizeof(float), 1, file);
         fread(&y, sizeof(float), 1, file);
         fread(&z, sizeof(float), 1, file);
-        vector vertex_3 = new_vector(x, y, z);
+        vector vertex_2 = new_vector(x*scale, y*scale, z*scale);
 
-        normal face_normal = to_normal(cross(normalize(sub_vector(vertex_2, vertex_1)),  normalize(sub_vector(vertex_3, vertex_1))));
+        fread(&x, sizeof(float), 1, file);
+        fread(&y, sizeof(float), 1, file);
+        fread(&z, sizeof(float), 1, file);
+        vector vertex_3 = new_vector(x*scale, y*scale, z*scale);
 
         face* surface = malloc(sizeof(face));
         surface->cloud = cloud;
@@ -59,7 +61,7 @@ stl_container read_stl_file(const char* file_name, double scale, properties mate
         cloud->vertices[vertices_index] = vertex_1; vertices_index++;
         cloud->vertices[vertices_index] = vertex_2; vertices_index++;
         cloud->vertices[vertices_index] = vertex_3; vertices_index++;
-        cloud->normals[normals_index] = face_normal; normals_index++;
+        cloud->normals[normals_index] = to_normal(face_normal); normals_index++;
 
         triangles[i].geometry = surface;
         triangles[i].bounding_box = get_face_bounding_box(surface);
@@ -75,12 +77,11 @@ stl_container read_stl_file(const char* file_name, double scale, properties mate
     center_obj(cloud->vertices, cloud->num_vertices);
 
     for(size_t i=0; i<cloud->num_vertices; i++){
-        cloud->vertices[i] = multiply(cloud->vertices[i], scale);
-        cloud->vertices[i] = trasnform(transformation, cloud->vertices[i]);
+        cloud->vertices[i] = transform(transformation, cloud->vertices[i]);
     }
 
     for(size_t i=0; i<faces_size; i++){
-        cloud->normals[i] = trasnform(transformation, cloud->normals[i]);
+        cloud->normals[i] = transform(transformation, cloud->normals[i]);
     }
 
     fclose(file);
