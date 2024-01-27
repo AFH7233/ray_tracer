@@ -650,7 +650,7 @@ static bool set_json_value(json_object* object, list* current){
         } else if(node->type == VALUE_NUMBER){
             current->is_visited = true;
             object->type = JSON_NUMBER;
-            object->value.number = atof(node->value);
+            object->value.number = strtod(node->value, NULL);
             return true;
         } else if(node->type == VALUE_BOOLEAN){
             current->is_visited = true;
