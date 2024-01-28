@@ -1,7 +1,7 @@
 {
-    "width" : 320,
-    "height" : 240,
-    "rays": 100,
+    "width" : 640,
+    "height" : 480,
+    "rays": 500,
     "bounces": 10,
     "threads" : 20,
     "output" : {
