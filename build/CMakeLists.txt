@@ -19,4 +19,4 @@ if(NOT WIN32)
 endif()
 
 set_target_properties(ray_tracer_threaded PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/out")
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../../out")
